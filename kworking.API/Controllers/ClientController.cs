@@ -53,4 +53,32 @@ public class ClientController : ControllerBase
         await _dbContext.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
     }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Update(int id, [FromBody] Client updatedClient)
+    {
+        if (id != updatedClient.Id)
+        {
+            return BadRequest( "ID в URL не совпадает с ID клиента");
+            
+        }
+
+        var existingClient = await _dbContext.Clients.FindAsync(id);
+        if (existingClient == null)
+        {   
+            
+            return NotFound($"Клиент с ID {id} не найден");
+
+            
+
+        }
+        existingClient.Name = updatedClient.Name;
+        existingClient.Surname = updatedClient.Surname; 
+        existingClient.Email = updatedClient.Email; 
+        existingClient.Phone = updatedClient.Phone;
+
+        _dbContext.Clients.Update(existingClient);
+        await _dbContext.SaveChangesAsync();
+        return NoContent();
+    }
 }
