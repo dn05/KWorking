@@ -3,14 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace kworking.API.Models
 {
-
+  
     public enum UserRole
     {
-        Admin,      // Администратор
-        Accountant,    // Администрация/Менеджер
-        Client      
+        Client,      // Клиенты (бронируют, смотрят тарифы)
+        Admin,       // Администраторы (регистрация, бронирования)
+        Employee,    // Сотрудники (обслуживание, контроль доступа)
+        Cashier,     // Кассиры (учёт оплат, задолженности)
+        Management   // Администрация (отчёты, загрузка, эффективность)
     }
-
 
     public class User
     {
@@ -27,6 +28,10 @@ namespace kworking.API.Models
         
         [Required]
         [Column(TypeName = "varchar(20)")]
-        public UserRole Role { get; set; } = UserRole.Client; 
+        public UserRole Role { get; set; } = UserRole.Client;
+        
+
+        public int? Id_client { get; set; }
+        public Client? Client { get; set; }
     }
 }

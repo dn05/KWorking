@@ -22,4 +22,17 @@ public class ClientController : ControllerBase
         var clients  = await _dbContext.Clients.ToListAsync();
         return Ok(clients);
     }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Client>> GetById(int id)
+    {
+        
+        var client = await _dbContext.Clients.FindAsync(id);
+        if (client == null)
+            
+        {
+            return NotFound($"Клиент с ID {id} не найден");
+        }
+        return Ok(client);
+    }
 }

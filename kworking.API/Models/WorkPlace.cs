@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace kworking.API.Models
 {
-    // Enum для статуса рабочего места
     public enum WorkPlaceStatus
     {
         free,      // Свободно/Доступно

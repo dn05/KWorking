@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace kworking.API.Models
 {
-    // Enum для статуса бронирования
     public enum BookingStatus
     {
         Active,     // Активно (Y)
