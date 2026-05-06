@@ -1,40 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using kworking.API.Models;
-using kworking.API.Controllers;
+using kworking.API.Data;
 
-namespace kworking.API.Controllers 
+namespace kworking.API.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
+public class BookingController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
+    private readonly KworkingDbContext _dbContext;
 
-
-    public class BookingController : ControllerBase
+    public BookingController(KworkingDbContext dbContext)
     {
-        [HttpGet]
-        public ActionResult<List<Booking>> GetAll()
-        {
-            var bookings = new List<Booking>() 
-            {
-                new Booking
-                {
-                     Id_booking = 1002,
-                    Id_client = 25,
-                    Id_workPlace = 8,
-                    Id_tariff = 2,
-                    StartDate = new DateTime(2025, 5, 11, 10, 0, 0),
-                    EndDate = new DateTime(2025, 5, 11, 15, 0, 0),
-                    Status = true,
-                    LastPrice = 500
-                }
-
-            };
-                    return Ok(bookings);
-        }
-
+        _dbContext = dbContext;
+    }
+    
+    [HttpGet]
+    public async Task<ActionResult<List<Booking>>> GetAll()
+    {
+        var bookings = await _dbContext.Bookings.ToListAsync();
+        return Ok(bookings);
     }
 }
-
-
-
-

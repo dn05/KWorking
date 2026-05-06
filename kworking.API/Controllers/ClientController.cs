@@ -1,40 +1,25 @@
-﻿using kworking.API.Controllers;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using kworking.API.Models;
-using Microsoft.AspNetCore.Mvc;
-using System.Net.Sockets;
+using kworking.API.Data;
 
-namespace kworking.API.Controllers
+namespace kworking.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ClientController : ControllerBase
 {
+    private readonly KworkingDbContext _dbContext;
 
-    [ApiController]
-    [Route("api/[controller]")]
-
-    public class ClientController : ControllerBase
+    public ClientController(KworkingDbContext dbContext)
     {
-        [HttpGet]
-        public ActionResult<List<Client>> GetAll()
-        {
-            var clients = new List<Client>()
-            {
-                new Client
-                {
-                     Id_client = 1,
-                        Name = "Виктор",
-                     Surname = "Иванов",
-                      Phone = "89632916798",
-                     Email = "qwerty@gmail.com",
-                }
-            };
-        
-            return Ok(clients);        
-        }
-      
-
+        _dbContext = dbContext;
+    }
+    
+    [HttpGet]
+    public async Task<ActionResult<List<Client>>> GetAll()
+    {
+        var clients  = await _dbContext.Clients.ToListAsync();
+        return Ok(clients);
     }
 }
-            
-   
-            
-        
-    
-

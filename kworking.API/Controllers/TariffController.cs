@@ -1,32 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using kworking.API.Controllers;
+using Microsoft.EntityFrameworkCore;
 using kworking.API.Models;
+using kworking.API.Data;
 
-namespace kworking.API.Controllers
+namespace kworking_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-
-
     public class TariffController : ControllerBase
     {
-        [HttpGet]
-        public ActionResult<List<Tariff>> GetAll()
-        {
-            var tarifs = new List<Tariff>()
-            {
-                new Tariff
-                {
-                    Id_Tariff =1,
-                    Name = "стандарт",
-                    Price = 500,
-                    Info = "базовый тариф",
-    }
+        private readonly KworkingDbContext _dbContext;
 
-            };
-            return Ok(tarifs);
+        public TariffController(KworkingDbContext dbContext)
+        {
+            _dbContext = dbContext;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<List<Tariff>>> GetAll()
+        {
+            var tariffs = await _dbContext.Tariffs.ToListAsync();
+            return Ok(tariffs);
+        }
     }
 }
-

@@ -1,5 +1,9 @@
+using Microsoft.EntityFrameworkCore;
+using kworking.API.Data;
 var builder = WebApplication.CreateBuilder(args);
-
+// Вместо UseSqlServer используйте UseNpgsql
+builder.Services.AddDbContext<KworkingDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.
 
 builder.Services.AddControllers();

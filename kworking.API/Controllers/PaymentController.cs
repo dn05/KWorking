@@ -1,32 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using kworking.API.Controllers;
+using Microsoft.EntityFrameworkCore;
 using kworking.API.Models;
+using kworking.API.Data;
 
-namespace kworking.API.Controllers
+namespace kworking_API.Controllers
 {
     [ApiController]
-    [Route("api / [controller]")]
-
-
+    [Route("api/[controller]")]
     public class PaymentController : ControllerBase
     {
-        [HttpGet]
-        public ActionResult<List<Payment>> GetAll()
-        {
-            var payments = new List<Payment>()
-            {
-                new Payment
-                {
-                        Id_pament = 1,
-                        Id_Booking = 1,
-                        Price = 500,
-                        Status = true,
-    }
+        private readonly KworkingDbContext _dbContext;
 
-            };
-            return Ok(payments);
+        public PaymentController(KworkingDbContext dbContext)
+        {
+            _dbContext = dbContext;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<List<Payment>>> GetAll()
+        {
+            var payments = await _dbContext.Payments.ToListAsync();
+            return Ok(payments);
+        }
     }
 }
-

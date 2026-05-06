@@ -1,8 +1,11 @@
-﻿namespace kworking.API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace kworking.API.Models
 {
     public class Client
     {
-        public int Id_client { get; set; }
+        [Key]
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Phone { get; set; }
