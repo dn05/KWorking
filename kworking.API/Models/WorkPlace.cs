@@ -10,7 +10,7 @@ namespace kworking.API.Models
         booked     // Забронировано
     }
 
-    // Модель рабочего места
+
     public class WorkPlace
     {
         [Key]
@@ -20,7 +20,7 @@ namespace kworking.API.Models
         [MaxLength(255)]
         public string Name { get; set; } = string.Empty;
         
-        public int Content { get; set; } = 0;  // DEFAULT 0
+        public int Content { get; set; } = 0;  
         
         [Required]
         [Column(TypeName = "varchar(20)")]

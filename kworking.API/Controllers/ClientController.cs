@@ -19,71 +19,74 @@ public class ClientController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<Client>>> GetAll()
     {
-        var clients  = await _dbContext.Clients.ToListAsync();
+        var clients = await _dbContext.Clients.ToListAsync();
         return Ok(clients);
     }
 
+    
     [HttpGet("{id}")]
     public async Task<ActionResult<Client>> GetById(int id)
     {
-        
         var client = await _dbContext.Clients.FindAsync(id);
         if (client == null)
-            
         {
             return NotFound($"Клиент с ID {id} не найден");
         }
         return Ok(client);
     }
 
+    
     [HttpPost]
     public async Task<ActionResult<Client>> Create([FromBody] Client client)
     {
-        if (ModelState.IsValid)
+        
+        if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+        
         var existingClient = await _dbContext.Clients
-            .FirstOrDefaultAsync(c =>c.Email == client.Email);
-        if ( existingClient != null)
+            .FirstOrDefaultAsync(c => c.Email == client.Email);
+        
+        if (existingClient != null)
         {
             return Conflict($"Клиент с email {client.Email} уже существует");
         }
+        
         await _dbContext.Clients.AddAsync(client);
         await _dbContext.SaveChangesAsync();
+        
         return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
     }
 
+    
     [HttpPut("{id}")]
-    public async Task<ActionResult> Update(int id, [FromBody] Client updatedClient)
+    public async Task<IActionResult> Update(int id, [FromBody] Client updatedClient)
     {
         if (id != updatedClient.Id)
         {
-            return BadRequest( "ID в URL не совпадает с ID клиента");
-            
+            return BadRequest("ID в URL не совпадает с ID клиента");
         }
 
         var existingClient = await _dbContext.Clients.FindAsync(id);
         if (existingClient == null)
-        {   
-            
+        {
             return NotFound($"Клиент с ID {id} не найден");
-
-            
-
         }
+
         existingClient.Name = updatedClient.Name;
-        existingClient.Surname = updatedClient.Surname; 
-        existingClient.Email = updatedClient.Email; 
+        existingClient.Surname = updatedClient.Surname;
+        existingClient.Email = updatedClient.Email;
         existingClient.Phone = updatedClient.Phone;
 
         _dbContext.Clients.Update(existingClient);
         await _dbContext.SaveChangesAsync();
+        
         return NoContent();
     }
-
+    
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         var client = await _dbContext.Clients.FindAsync(id);
         if (client == null)
@@ -93,6 +96,7 @@ public class ClientController : ControllerBase
 
         var hasActiveBookings = await _dbContext.Bookings
             .AnyAsync(b => b.Id_client == id && b.Status == BookingStatus.Active);
+        
         if (hasActiveBookings)
         {
             return BadRequest("Нельзя удалить клиента с активными бронированиями");
@@ -100,6 +104,35 @@ public class ClientController : ControllerBase
         
         _dbContext.Clients.Remove(client);
         await _dbContext.SaveChangesAsync();
+        
         return NoContent();
+    }
+    
+    [HttpGet("search")]
+    public async Task<ActionResult<List<Client>>> Search(
+        [FromQuery] string? email = null,
+        [FromQuery] string? phone = null,
+        [FromQuery] string? name = null)
+    {
+        var query = _dbContext.Clients.AsQueryable();
+        
+        if (!string.IsNullOrEmpty(phone))
+        {
+        
+            query = query.Where(c => c.Phone.Contains(phone));
+        }
+
+        if (!string.IsNullOrEmpty(email))
+        {
+            query = query.Where(c => c.Email.Contains(email));
+        }
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            query = query.Where(c => c.Name.Contains(name) || c.Surname.Contains(name));
+        }
+        
+        var clients = await query.ToListAsync();
+        return Ok(clients);
     }
 }
