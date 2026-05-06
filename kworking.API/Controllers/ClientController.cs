@@ -35,4 +35,22 @@ public class ClientController : ControllerBase
         }
         return Ok(client);
     }
+
+    [HttpPost]
+    public async Task<ActionResult<Client>> Create([FromBody] Client client)
+    {
+        if (ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var existingClient = await _dbContext.Clients
+            .FirstOrDefaultAsync(c =>c.Email == client.Email);
+        if ( existingClient != null)
+        {
+            return Conflict($"Клиент с email {client.Email} уже существует");
+        }
+        await _dbContext.Clients.AddAsync(client);
+        await _dbContext.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
+    }
 }
