@@ -81,4 +81,25 @@ public class ClientController : ControllerBase
         await _dbContext.SaveChangesAsync();
         return NoContent();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+        var client = await _dbContext.Clients.FindAsync(id);
+        if (client == null)
+        {
+            return NotFound($"Клиент с ID {id} не найден");
+        }
+
+        var hasActiveBookings = await _dbContext.Bookings
+            .AnyAsync(b => b.Id_client == id && b.Status == BookingStatus.Active);
+        if (hasActiveBookings)
+        {
+            return BadRequest("Нельзя удалить клиента с активными бронированиями");
+        }
+        
+        _dbContext.Clients.Remove(client);
+        await _dbContext.SaveChangesAsync();
+        return NoContent();
+    }
 }
