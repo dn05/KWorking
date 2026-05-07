@@ -116,8 +116,39 @@ namespace kworking_API.Controllers
 
             return Ok(debts);
         }
+        [HttpGet("report")]
+        public async Task<ActionResult> GetReport(
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null)
+        {
+            var query = _dbContext.Payments
+                .Where(p => p.Status == PaymentStatus.Paid)
+                .AsQueryable();
 
-    }
-    
-    
+            if (startDate.HasValue)
+            {
+                query = query.Where(p => p.PaymentDate >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(p => p.PaymentDate <= endDate.Value);
+            }
+
+            var payments = await query.ToListAsync();
+
+            var report = new
+            {
+                TotalAmount = payments.Sum(p => p.Price),
+                TotalCount = payments.Count,
+                StartDate = startDate,
+                EndDate = endDate,
+                Payments = payments
+            };
+
+            return Ok(report);
+        }
+    } 
 }
+    
+    
