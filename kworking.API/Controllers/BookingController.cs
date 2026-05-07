@@ -206,4 +206,21 @@ public async Task<ActionResult<Booking>> Create([FromBody] Booking booking)
 
             return Ok(bookings);
         }
+        [HttpGet("workplace/{workplaceId}")]
+        public async Task<ActionResult<List<Booking>>> GetByWorkPlace(int workplaceId)
+        {
+            var workPlace = await _dbContext.WorkPlaces.FindAsync(workplaceId);
+            if (workPlace == null)
+            {
+                return NotFound($"Рабочее место с ID {workplaceId} не найдено");
+            }
+
+            var bookings = await _dbContext.Bookings
+                .Include(b => b.Client)
+                .Include(b => b.Tariff)
+                .Where(b => b.Id_workPlace == workplaceId)
+                .ToListAsync();
+
+            return Ok(bookings);
+        }
 }
