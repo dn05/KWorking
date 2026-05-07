@@ -189,4 +189,21 @@ public async Task<ActionResult<Booking>> Create([FromBody] Booking booking)
 
             return Ok(bookings);
         }
+        [HttpGet("client/{clientId}")]
+        public async Task<ActionResult<List<Booking>>> GetByClient(int clientId)
+        {
+            var client = await _dbContext.Clients.FindAsync(clientId);
+            if (client == null)
+            {
+                return NotFound($"Клиент с ID {clientId} не найден");
+            }
+
+            var bookings = await _dbContext.Bookings
+                .Include(b => b.WorkPlace)
+                .Include(b => b.Tariff)
+                .Where(b => b.Id_client == clientId)
+                .ToListAsync();
+
+            return Ok(bookings);
+        }
 }
