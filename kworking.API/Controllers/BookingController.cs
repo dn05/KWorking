@@ -22,4 +22,15 @@ public class BookingController : ControllerBase
         var bookings = await _dbContext.Bookings.ToListAsync();
         return Ok(bookings);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<List<Booking>>> GetAl()
+    {
+        var bookings = await _dbContext.Bookings
+            .Include(b => b.Client)
+            .Include(b => b.WorkPlace)
+            .Include(b => b.Tariff)
+            .ToListAsync();
+        return Ok(bookings);
+    }
 }
