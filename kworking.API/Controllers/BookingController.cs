@@ -33,4 +33,16 @@ public class BookingController : ControllerBase
             .ToListAsync();
         return Ok(bookings);
     }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Booking>> GetById(int id)
+    {
+        
+        var booking = await _dbContext.Bookings.FindAsync(id);
+        if (booking == null)
+        {
+            return NotFound($"Бронирование с ID {id} не найдено");
+        }
+        return Ok(booking);
+    }
 }
