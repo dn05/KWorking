@@ -99,4 +99,14 @@ public class WorkPlaceController : ControllerBase
 
         return NoContent();
     }
+    
+    [HttpGet("free")]
+    public async Task<ActionResult<List<WorkPlace>>> GetFree()
+    {
+        var workPlaces = await _dbContext.WorkPlaces
+            .Where(w => w.Status == WorkPlaceStatus.free)
+            .ToListAsync();
+
+        return Ok(workPlaces);
+    }
 }
