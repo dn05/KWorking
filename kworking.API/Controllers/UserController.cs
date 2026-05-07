@@ -34,4 +34,28 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
+    [HttpPost]
+    public async Task<ActionResult<User>> Create([FromBody] User user)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var existing = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Login == user.Login);
+
+        if (existing != null)
+            return Conflict($"Пользователь с логином '{user.Login}' уже существует");
+
+        if (user.Id_client.HasValue)
+        {
+            var client = await _dbContext.Clients.FindAsync(user.Id_client.Value);
+            if (client == null)
+                return NotFound($"Клиент с ID {user.Id_client} не найден");
+        }
+
+        await _dbContext.Users.AddAsync(user);
+        await _dbContext.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetById), new { id = user.Id_user }, user);
+    }
 }
