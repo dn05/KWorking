@@ -107,7 +107,16 @@ namespace kworking_API.Controllers
 
             return Ok(payments);
         }
-        
+        [HttpGet("debt")]
+        public async Task<ActionResult<List<Payment>>> GetDebts()
+        {
+            var debts = await _dbContext.Payments
+                .Where(p => p.Status == PaymentStatus.Pending)
+                .ToListAsync();
+
+            return Ok(debts);
+        }
+
     }
     
     
