@@ -223,4 +223,34 @@ public async Task<ActionResult<Booking>> Create([FromBody] Booking booking)
 
             return Ok(bookings);
         }
+        [HttpGet("search")]
+        public async Task<ActionResult<List<Booking>>> Search(
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null,
+            [FromQuery] BookingStatus? status = null)
+        {
+            var query = _dbContext.Bookings
+                .Include(b => b.Client)
+                .Include(b => b.WorkPlace)
+                .Include(b => b.Tariff)
+                .AsQueryable();
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(b => b.StartDate >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                query = query.Where(b => b.EndDate <= endDate.Value);
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(b => b.Status == status.Value);
+            }
+
+            var bookings = await query.ToListAsync();
+            return Ok(bookings);
+        }
 }
