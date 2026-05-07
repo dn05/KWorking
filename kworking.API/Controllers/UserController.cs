@@ -110,4 +110,14 @@ public class UserController : ControllerBase
 
         return NoContent();
     }
+    [HttpGet("role/{role}")]
+    public async Task<ActionResult<List<User>>> GetByRole(UserRole role)
+    {
+        var users = await _dbContext.Users
+            .Include(u => u.Client)
+            .Where(u => u.Role == role)
+            .ToListAsync();
+
+        return Ok(users);
+    }
 }
