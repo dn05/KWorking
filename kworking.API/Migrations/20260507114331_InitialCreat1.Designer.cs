@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using kworking.API.Data;
@@ -11,9 +12,11 @@ using kworking.API.Data;
 namespace kworking.API.Migrations
 {
     [DbContext(typeof(KworkingDbContext))]
-    partial class KworkingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507114331_InitialCreat1")]
+    partial class InitialCreat1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -69,6 +69,28 @@ namespace kworking_API.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = payment.Id_payment }, payment);
         }
-        
+        [HttpPatch("{id}/pay")]
+        public async Task<IActionResult> Pay(int id)
+        {
+            var payment = await _dbContext.Payments.FindAsync(id);
+            if (payment == null)
+            {
+                return NotFound($"Платёж с ID {id} не найден");
+            }
+
+            if (payment.Status != PaymentStatus.Pending)
+            {
+                return BadRequest("Оплатить можно только платёж со статусом Pending");
+            }
+
+            payment.Status = PaymentStatus.Paid;
+            payment.PaymentDate = DateTime.Now;
+
+            _dbContext.Payments.Update(payment);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        } 
     }
+    
 }
