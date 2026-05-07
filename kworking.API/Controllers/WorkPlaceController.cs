@@ -77,4 +77,26 @@ public class WorkPlaceController : ControllerBase
 
         return NoContent();
     }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var workPlace = await _dbContext.WorkPlaces.FindAsync(id);
+        if (workPlace == null)
+        {
+            return NotFound($"Рабочее место с ID {id} не найдено");
+        }
+
+  
+        var hasActiveBookings = await _dbContext.Bookings
+            .AnyAsync(b => b.Id_workPlace == id && b.Status == BookingStatus.Active);
+        if (hasActiveBookings)
+        {
+            return BadRequest("Нельзя удалить рабочее место с активными бронированиями");
+        }
+
+        _dbContext.WorkPlaces.Remove(workPlace);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
