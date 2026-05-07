@@ -98,5 +98,27 @@ namespace kworking_API.Controllers
 
             return NoContent();
         }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var tariff = await _dbContext.Tariffs.FindAsync(id);
+            if (tariff == null)
+            {
+                return NotFound($"Тариф с ID {id} не найден");
+            }
+
+            var hasActiveBookings = await _dbContext.Bookings
+                .AnyAsync(b => b.Id_tariff == id && b.Status == BookingStatus.Active);
+
+            if (hasActiveBookings)
+            {
+                return BadRequest("Нельзя удалить тариф с активными бронированиями");
+            }
+
+            _dbContext.Tariffs.Remove(tariff);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }
