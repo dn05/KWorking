@@ -96,4 +96,18 @@ public class UserController : ControllerBase
 
         return NoContent();
     }
+    [HttpPatch("{id}/role")]
+    public async Task<IActionResult> UpdateRole(int id, [FromQuery] UserRole role)
+    {
+        var user = await _dbContext.Users.FindAsync(id);
+        if (user == null)
+            return NotFound($"Пользователь с ID {id} не найден");
+
+        user.Role = role;
+
+        _dbContext.Users.Update(user);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
