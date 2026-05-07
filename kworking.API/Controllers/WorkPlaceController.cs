@@ -32,4 +32,27 @@ public class WorkPlaceController : ControllerBase
         }
         return Ok(workPlace);
     }
+    [HttpPost]
+    public async Task<ActionResult<WorkPlace>> Create([FromBody] WorkPlace workPlace)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+
+        var existing = await _dbContext.WorkPlaces
+            .FirstOrDefaultAsync(w => w.Name == workPlace.Name);
+        if (existing != null)
+        {
+            return Conflict($"Рабочее место с названием '{workPlace.Name}' уже существует");
+        }
+
+        workPlace.Status = WorkPlaceStatus.free;
+
+        await _dbContext.WorkPlaces.AddAsync(workPlace);
+        await _dbContext.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetById), new { id = workPlace.Id_workplace }, workPlace);
+    }
 }
