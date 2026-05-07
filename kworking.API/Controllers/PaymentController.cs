@@ -22,5 +22,16 @@ namespace kworking_API.Controllers
             var payments = await _dbContext.Payments.ToListAsync();
             return Ok(payments);
         }
+        
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Payment>> GetById(int id)
+        {
+            var payment = await _dbContext.Payments.FindAsync(id);
+            if (payment == null)
+            {
+                return NotFound($"Платёж с ID {id} не найден");
+            }
+            return Ok(payment);
+        }
     }
 }
