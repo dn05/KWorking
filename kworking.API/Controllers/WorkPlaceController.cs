@@ -109,4 +109,21 @@ public class WorkPlaceController : ControllerBase
 
         return Ok(workPlaces);
     }
+
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(int id, [FromQuery] WorkPlaceStatus status)
+    {
+        var workPlace = await _dbContext.WorkPlaces.FindAsync(id);
+        if (workPlace == null)
+        {
+            return NotFound($"Рабочее место с ID {id} не найдено");
+        }
+
+        workPlace.Status = status;
+
+        _dbContext.WorkPlaces.Update(workPlace);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
