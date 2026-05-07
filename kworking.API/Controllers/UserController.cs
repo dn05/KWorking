@@ -84,4 +84,16 @@ public class UserController : ControllerBase
 
         return NoContent();
     }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var user = await _dbContext.Users.FindAsync(id);
+        if (user == null)
+            return NotFound($"Пользователь с ID {id} не найден");
+
+        _dbContext.Users.Remove(user);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
