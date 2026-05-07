@@ -112,4 +112,69 @@ public async Task<ActionResult<Booking>> Create([FromBody] Booking booking)
 
     return CreatedAtAction(nameof(GetById), new { id = booking.Id_booking }, booking);
     }
+[HttpPatch("{id}/cancel")]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var booking = await _dbContext.Bookings
+                .Include(b => b.WorkPlace)
+                .FirstOrDefaultAsync(b => b.Id_booking == id);
+
+            if (booking == null)
+            {
+                return NotFound($"Бронирование с ID {id} не найдено");
+            }
+
+            if (booking.Status != BookingStatus.Active)
+            {
+                return BadRequest("Отменить можно только активное бронирование");
+            }
+
+            
+            booking.Status = BookingStatus.Cancelled;
+
+            
+            if (booking.WorkPlace != null)
+            {
+                booking.WorkPlace.Status = WorkPlaceStatus.free;
+                _dbContext.WorkPlaces.Update(booking.WorkPlace);
+            }
+
+            _dbContext.Bookings.Update(booking);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPatch("{id}/complete")]
+        public async Task<IActionResult> Complete(int id)
+        {
+            var booking = await _dbContext.Bookings
+                .Include(b => b.WorkPlace)
+                .FirstOrDefaultAsync(b => b.Id_booking == id);
+
+            if (booking == null)
+            {
+                return NotFound($"Бронирование с ID {id} не найдено");
+            }
+
+            if (booking.Status != BookingStatus.Active)
+            {
+                return BadRequest("Завершить можно только активное бронирование");
+            }
+
+            
+            booking.Status = BookingStatus.Completed;
+
+            
+            if (booking.WorkPlace != null)
+            {
+                booking.WorkPlace.Status = WorkPlaceStatus.free;
+                _dbContext.WorkPlaces.Update(booking.WorkPlace);
+            }
+
+            _dbContext.Bookings.Update(booking);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
 }
