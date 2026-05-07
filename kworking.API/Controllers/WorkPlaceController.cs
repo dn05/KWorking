@@ -55,4 +55,26 @@ public class WorkPlaceController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = workPlace.Id_workplace }, workPlace);
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] WorkPlace updatedWorkPlace)
+    {
+        if (id != updatedWorkPlace.Id_workplace)
+        {
+            return BadRequest("ID в URL не совпадает с ID рабочего места");
+        }
+
+        var workPlace = await _dbContext.WorkPlaces.FindAsync(id);
+        if (workPlace == null)
+        {
+            return NotFound($"Рабочее место с ID {id} не найдено");
+        }
+
+        workPlace.Name = updatedWorkPlace.Name;
+        workPlace.Content = updatedWorkPlace.Content;
+
+        _dbContext.WorkPlaces.Update(workPlace);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
