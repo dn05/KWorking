@@ -253,4 +253,59 @@ public async Task<ActionResult<Booking>> Create([FromBody] Booking booking)
             var bookings = await query.ToListAsync();
             return Ok(bookings);
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] Booking updatedBooking)
+        {
+            if (id != updatedBooking.Id_booking)
+            {
+                return BadRequest("ID в URL не совпадает с ID бронирования");
+            }
+
+            var booking = await _dbContext.Bookings
+                .Include(b => b.WorkPlace)
+                .FirstOrDefaultAsync(b => b.Id_booking == id);
+
+            if (booking == null)
+            {
+                return NotFound($"Бронирование с ID {id} не найдено");
+            }
+
+            if (booking.Status != BookingStatus.Active)
+            {
+                return BadRequest("Редактировать можно только активное бронирование");
+            }
+
+            
+            var hasConflict = await _dbContext.Bookings.AnyAsync(b =>
+                b.Id_workPlace == booking.Id_workPlace &&
+                b.Status == BookingStatus.Active &&
+                b.Id_booking != id &&
+                b.StartDate < updatedBooking.EndDate &&
+                b.EndDate > updatedBooking.StartDate);
+
+            if (hasConflict)
+            {
+                return Conflict("На это рабочее место уже есть активное бронирование в указанный период");
+            }
+
+            
+            var tariff = await _dbContext.Tariffs.FindAsync(booking.Id_tariff);
+            if (tariff != null && tariff.DurationHours.HasValue)
+            {
+                var hours = (decimal)(updatedBooking.EndDate - updatedBooking.StartDate).TotalHours;
+                if (hours <= 0)
+                {
+                    return BadRequest("Дата окончания должна быть позже даты начала");
+                }
+                booking.LastPrice = Math.Round(tariff.Price * hours, 2);
+            }
+
+            booking.StartDate = updatedBooking.StartDate;
+            booking.EndDate = updatedBooking.EndDate;
+
+            _dbContext.Bookings.Update(booking);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
 }
