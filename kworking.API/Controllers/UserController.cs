@@ -22,5 +22,16 @@ public class UserController : ControllerBase
         var users = await _dbContext.Users.ToListAsync();
         return Ok(users);
     }
-        
+    [HttpGet("{id}")]
+    public async Task<ActionResult<User>> GetById(int id)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.Client)
+            .FirstOrDefaultAsync(u => u.Id_user == id);
+
+        if (user == null)
+            return NotFound($"Пользователь с ID {id} не найден");
+
+        return Ok(user);
+    }
 }
