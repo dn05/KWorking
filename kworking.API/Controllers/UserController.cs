@@ -58,4 +58,30 @@ public class UserController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = user.Id_user }, user);
     }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] User updatedUser)
+    {
+        if (id != updatedUser.Id_user)
+            return BadRequest("ID в URL не совпадает с ID пользователя");
+
+        var user = await _dbContext.Users.FindAsync(id);
+        if (user == null)
+            return NotFound($"Пользователь с ID {id} не найден");
+
+        var loginConflict = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Login == updatedUser.Login && u.Id_user != id);
+
+        if (loginConflict != null)
+            return Conflict($"Логин '{updatedUser.Login}' уже занят другим пользователем");
+
+        user.Login = updatedUser.Login;
+        user.Password = updatedUser.Password;
+        user.Role = updatedUser.Role;
+        user.Id_client = updatedUser.Id_client;
+
+        _dbContext.Users.Update(user);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
