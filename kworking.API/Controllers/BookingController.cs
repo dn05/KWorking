@@ -177,4 +177,16 @@ public async Task<ActionResult<Booking>> Create([FromBody] Booking booking)
 
             return NoContent();
         }
+        [HttpGet("active")]
+        public async Task<ActionResult<List<Booking>>> GetActive()
+        {
+            var bookings = await _dbContext.Bookings
+                .Include(b => b.Client)
+                .Include(b => b.WorkPlace)
+                .Include(b => b.Tariff)
+                .Where(b => b.Status == BookingStatus.Active)
+                .ToListAsync();
+
+            return Ok(bookings);
+        }
 }
