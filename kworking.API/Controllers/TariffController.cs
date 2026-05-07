@@ -33,6 +33,36 @@ namespace kworking_API.Controllers
             }
             return Ok(tariff);
         }
+        [HttpPost]
+        public async Task<ActionResult<Tariff>> Create([FromBody] Tariff tariff)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!tariff.DurationHours.HasValue && !tariff.ValidDays.HasValue)
+            {
+                return BadRequest("Укажите либо длительность в часах, либо срок действия в днях");
+            }
+
+            if (tariff.DurationHours.HasValue && tariff.ValidDays.HasValue)
+            {
+                return BadRequest("Тариф не может быть одновременно почасовым и абонементом");
+            }
+
+            var existing = await _dbContext.Tariffs
+                .FirstOrDefaultAsync(t => t.Name == tariff.Name);
+            if (existing != null)
+            {
+                return Conflict($"Тариф с названием '{tariff.Name}' уже существует");
+            }
+
+            await _dbContext.Tariffs.AddAsync(tariff);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = tariff.Id_tariff }, tariff);
+        }
 
     }
 }
