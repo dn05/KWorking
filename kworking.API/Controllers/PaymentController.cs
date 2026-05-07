@@ -91,7 +91,28 @@ namespace kworking_API.Controllers
 
             return NoContent();
         } 
-        
+        [HttpPatch("{id}/cancel")]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var payment = await _dbContext.Payments.FindAsync(id);
+            if (payment == null)
+            {
+                return NotFound($"Платёж с ID {id} не найден");
+            }
+
+            if (payment.Status != PaymentStatus.Pending)
+            {
+                return BadRequest("Отменить можно только платёж со статусом Pending");
+            }
+
+            payment.Status = PaymentStatus.Cancelled;
+
+            _dbContext.Payments.Update(payment);
+            await _dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpGet("booking/{bookingId}")]
         public async Task<ActionResult<List<Payment>>> GetByBooking(int bookingId)
         {

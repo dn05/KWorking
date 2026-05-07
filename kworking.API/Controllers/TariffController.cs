@@ -22,5 +22,17 @@ namespace kworking_API.Controllers
             var tariffs = await _dbContext.Tariffs.ToListAsync();
             return Ok(tariffs);
         }
+        
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Tariff>> GetById(int id)
+        {
+            var tariff = await _dbContext.Tariffs.FindAsync(id);
+            if (tariff == null)
+            {
+                return NotFound($"Тариф с ID {id} не найден");
+            }
+            return Ok(tariff);
+        }
+
     }
 }
