@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using kworking.API.Data;
-using kworking.API.Models;
+using BCryptAlgo = BCrypt.Net.BCrypt;
 
 namespace kworking.API.Controllers;
 
@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
             .Include(u => u.Client)
             .FirstOrDefaultAsync(u => u.Login == request.Login);
 
-        if (user == null || user.Password != request.Password)
+        if (user == null || !BCryptAlgo.Verify(request.Password, user.Password))
             return Unauthorized("Неверный логин или пароль");
 
         return Ok(new
@@ -38,6 +38,9 @@ public class AuthController : ControllerBase
             ClientName = user.Client != null ? $"{user.Client.Name} {user.Client.Surname}" : null
         });
     }
+
+    public static string HashPassword(string plainPassword)
+        => BCryptAlgo.HashPassword(plainPassword, workFactor: 12);
 }
 
 public class LoginRequest
