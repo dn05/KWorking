@@ -29,5 +29,14 @@ namespace kworking.API.Models
         public BookingStatus Status { get; set; } = BookingStatus.Active;
         
         public decimal LastPrice { get; set; }
+        
+        [ForeignKey(nameof(Id_client))]
+        public virtual Client? Client { get; set; }
+        
+        [ForeignKey(nameof(Id_workPlace))]
+        public virtual WorkPlace? WorkPlace { get; set; }
+        
+        [ForeignKey(nameof(Id_tariff))]
+        public virtual Tariff? Tariff { get; set; }
     }
 }
