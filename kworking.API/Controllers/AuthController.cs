@@ -92,6 +92,23 @@ namespace kworking.API.Controllers
             });
         }
 
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Login == request.Login);
+            if (user == null)
+                return NotFound("Пользователь с таким логином не найден");
+
+            user.Password = BCryptAlgo.HashPassword(request.NewPassword, workFactor: 12);
+            await db.SaveChangesAsync();
+
+            logger.LogInformation("Сброс пароля для пользователя {Login}", user.Login);
+            return Ok("Пароль успешно изменён");
+        }
+
         internal string GenerateJwtToken(User user)
         {
             var jwtKey = config["Jwt:Key"]
@@ -136,5 +153,11 @@ namespace kworking.API.Controllers
         public string Surname  { get; set; } = string.Empty;
         public string Phone    { get; set; } = string.Empty;
         public string Email    { get; set; } = string.Empty;
+    }
+
+    public class ResetPasswordRequest
+    {
+        public string Login       { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
 }
