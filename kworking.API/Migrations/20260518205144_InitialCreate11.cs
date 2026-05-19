@@ -5,7 +5,7 @@
 namespace kworking.API.Migrations
 {
     /// <inheritdoc />
-    public partial class NameOfMigrati : Migration
+    public partial class InitialCreate11 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

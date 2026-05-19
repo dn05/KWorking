@@ -12,8 +12,8 @@ using kworking.API.Data;
 namespace kworking.API.Migrations
 {
     [DbContext(typeof(KworkingDbContext))]
-    [Migration("20260507144214_NameOfMigrati")]
-    partial class NameOfMigrati
+    [Migration("20260518203806_InitialCreate1")]
+    partial class InitialCreate1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,6 +52,9 @@ namespace kworking.API.Migrations
 
                     b.HasKey("Id_tariff");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.ToTable("Tariffs");
                 });
 
@@ -83,7 +86,7 @@ namespace kworking.API.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(30)");
 
                     b.HasKey("Id_booking");
 
@@ -122,6 +125,12 @@ namespace kworking.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
                     b.ToTable("Clients");
                 });
 
@@ -159,29 +168,28 @@ namespace kworking.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_user"));
 
-                    b.Property<int?>("ClientId")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("Id_client")
                         .HasColumnType("integer");
 
                     b.Property<string>("Login")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(30)");
 
                     b.HasKey("Id_user");
 
-                    b.HasIndex("ClientId");
+                    b.HasIndex("Id_client");
+
+                    b.HasIndex("Login")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -194,8 +202,10 @@ namespace kworking.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_workplace"));
 
-                    b.Property<int>("Content")
-                        .HasColumnType("integer");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -207,6 +217,9 @@ namespace kworking.API.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.HasKey("Id_workplace");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("WorkPlaces");
                 });
@@ -242,7 +255,7 @@ namespace kworking.API.Migrations
                 {
                     b.HasOne("kworking.API.Models.Client", "Client")
                         .WithMany()
-                        .HasForeignKey("ClientId");
+                        .HasForeignKey("Id_client");
 
                     b.Navigation("Client");
                 });

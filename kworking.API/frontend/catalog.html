@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог - KWorking</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- Header вставляется автоматически -->
+
+<section class="section">
+    <h2>Все рабочие места</h2>
+
+    <div style="margin-bottom: 3rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+        <input type="text" id="search" placeholder="Поиск по названию..."
+               style="padding: 12px 20px; border-radius: 8px; background: #242424; border: none; color: white; width: 300px;">
+        <select id="filter-tariff" style="padding: 12px 20px; border-radius: 8px; background: #242424; border: none; color: white;">
+            <option value="">Все тарифы</option>
+        </select>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;" id="catalog-grid">
+        <!-- JS заполнит -->
+    </div>
+</section>
+
+<script src="js/api.js"></script>
+<script src="components/header.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', loadCatalog);
+
+    async function loadCatalog() {
+        const container = document.getElementById('catalog-grid');
+        container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Загрузка...</p>';
+
+        try {
+            const places = await api.getWorkPlaces();
+            container.innerHTML = '';
+
+            places.forEach(place => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                        <img src="${place.imageUrl || 'https://via.placeholder.com/400x220/424123/E6DED3?text=' + encodeURIComponent(place.name)}" alt="${place.name}">
+                        <div class="card-content">
+                            <h3>${place.name}</h3>
+                            <p>${place.description?.substring(0, 100)}...</p>
+                            <div class="price">${place.pricePerHour || 0} ₽/час</div>
+                            <button class="btn btn-primary" style="width:100%; margin-top: 1rem;" 
+                                    onclick="goToWorkplace(${place.id})">Подробнее</button>
+                        </div>
+                    `;
+                container.appendChild(card);
+            });
+        } catch (e) {
+            container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки данных</p>';
+        }
+    }
+
+    function goToWorkplace(id) {
+        window.location.href = `workplace.html?id=${id}`;
+    }
+</script>
+</body>
+</html>

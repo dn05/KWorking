@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бронирование - KWorking</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .booking-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 3rem;
+        }
+        .calendar-container, .workplaces-list {
+            background: #242424;
+            padding: 2rem;
+            border-radius: 12px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+        .calendar-day-name {
+            font-weight: 600;
+            padding: 10px 0;
+            color: var(--accent);
+        }
+        .calendar-date {
+            padding: 12px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .calendar-date:hover { background: #333; }
+        .calendar-date.today { background: var(--accent); color: #111; font-weight: bold; }
+        .calendar-date.selected { background: #E6DED3; color: #111; font-weight: bold; }
+
+        .workplace-option {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+        }
+        .workplace-option:hover, .workplace-option.selected {
+            background: var(--accent);
+            color: #111;
+        }
+    </style>
+</head>
+<body>
+<!-- Header вставляется автоматически -->
+
+<section class="section">
+    <h2 style="text-align: center; margin-bottom: 3rem;">Быстрое бронирование</h2>
+
+    <div class="booking-container">
+        <!-- Календарь -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button onclick="prevMonth()" class="btn">←</button>
+                <h3 id="month-year"></h3>
+                <button onclick="nextMonth()" class="btn">→</button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+
+        <!-- Список мест -->
+        <div>
+            <h3>Доступные рабочие места</h3>
+            <div class="workplaces-list" id="workplaces-list"></div>
+
+            <div style="margin-top: 2rem; background: #242424; padding: 1.5rem; border-radius: 12px;" id="booking-summary">
+                <h3>Выбрано:</h3>
+                <p id="selected-info">Выберите дату и место</p>
+                <button onclick="confirmBooking()" id="confirm-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 16px;" disabled>
+                    Подтвердить бронирование
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="js/api.js"></script>
+<script src="components/header.js"></script>
+<script>
+    let currentDate = new Date();
+    let selectedDate = null;
+    let selectedPlace = null;
+    let allPlaces = [];
+
+    async function loadPage() {
+        await loadWorkplaces();
+        renderCalendar();
+    }
+
+    async function loadWorkplaces() {
+        try {
+            allPlaces = await api.getWorkPlaces();
+            renderWorkplaces();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderWorkplaces() {
+        const container = document.getElementById('workplaces-list');
+        container.innerHTML = '';
+        allPlaces.forEach(place => {
+            const div = document.createElement('div');
+            div.className = 'workplace-option';
+            div.innerHTML = `
+                    <strong>${place.name}</strong><br>
+                    <small>${place.description?.substring(0, 70) || ''}...</small><br>
+                    <strong style="color: var(--accent);">${place.pricePerHour || 0} ₽/час</strong>
+                `;
+            div.onclick = () => selectPlace(place, div);
+            container.appendChild(div);
+        });
+    }
+
+    function selectPlace(place, element) {
+        document.querySelectorAll('.workplace-option').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedPlace = place;
+        updateSummary();
+    }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendar-grid');
+        grid.innerHTML = '';
+
+        const days = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+        days.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'calendar-day-name';
+            el.textContent = d;
+            grid.appendChild(el);
+        });
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        document.getElementById('month-year').textContent = currentDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < (firstDay === 0 ? 6 : firstDay - 1); i++) {
+            grid.appendChild(document.createElement('div'));
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateEl = document.createElement('div');
+            dateEl.className = 'calendar-date';
+            dateEl.textContent = day;
+
+            const thisDate = new Date(year, month, day);
+            if (thisDate.toDateString() === new Date().toDateString()) dateEl.classList.add('today');
+
+            dateEl.onclick = () => {
+                selectedDate = thisDate;
+                document.querySelectorAll('.calendar-date').forEach(el => el.classList.remove('selected'));
+                dateEl.classList.add('selected');
+                updateSummary();
+            };
+            grid.appendChild(dateEl);
+        }
+    }
+
+    function prevMonth() { currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); }
+    function nextMonth() { currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); }
+
+    function updateSummary() {
+        const btn = document.getElementById('confirm-btn');
+        const info = document.getElementById('selected-info');
+        if (selectedDate && selectedPlace) {
+            info.innerHTML = `<strong>${selectedPlace.name}</strong><br>${selectedDate.toLocaleDateString('ru-RU')}`;
+            btn.disabled = false;
+        }
+    }
+
+    async function confirmBooking() {
+        if (!selectedDate || !selectedPlace) return;
+
+        try {
+            const data = {
+                workPlaceId: selectedPlace.id,
+                date: selectedDate.toISOString().split('T')[0],
+                startTime: "09:00",
+                endTime: "18:00"
+            };
+            await api.createBooking(data);
+            alert("✅ Бронирование успешно создано!");
+            window.location.href = "my-bookings.html";
+        } catch (e) {
+            alert("Ошибка при бронировании");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPage);
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ using kworking.API.Data;
 namespace kworking.API.Migrations
 {
     [DbContext(typeof(KworkingDbContext))]
-    [Migration("20260506071059_InitialCreate")]
+    [Migration("20260518201650_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,39 @@ namespace kworking.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Tariff", b =>
+                {
+                    b.Property<int>("Id_tariff")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_tariff"));
+
+                    b.Property<int?>("DurationHours")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Info")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ValidDays")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id_tariff");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tariffs");
+                });
 
             modelBuilder.Entity("kworking.API.Models.Booking", b =>
                 {
@@ -53,9 +86,15 @@ namespace kworking.API.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(30)");
 
                     b.HasKey("Id_booking");
+
+                    b.HasIndex("Id_client");
+
+                    b.HasIndex("Id_tariff");
+
+                    b.HasIndex("Id_workPlace");
 
                     b.ToTable("Bookings");
                 });
@@ -86,53 +125,39 @@ namespace kworking.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
                     b.ToTable("Clients");
                 });
 
             modelBuilder.Entity("kworking.API.Models.Payment", b =>
                 {
-                    b.Property<int>("Id_pament")
+                    b.Property<int>("Id_payment")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_pament"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_payment"));
 
-                    b.Property<int>("Id_Booking")
+                    b.Property<int>("Id_booking")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("boolean");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
 
-                    b.HasKey("Id_pament");
+                    b.HasKey("Id_payment");
 
                     b.ToTable("Payments");
-                });
-
-            modelBuilder.Entity("kworking.API.Models.Tariff", b =>
-                {
-                    b.Property<int>("Id_Tariff")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_Tariff"));
-
-                    b.Property<string>("Info")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id_Tariff");
-
-                    b.ToTable("Tariffs");
                 });
 
             modelBuilder.Entity("kworking.API.Models.User", b =>
@@ -143,21 +168,28 @@ namespace kworking.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_user"));
 
+                    b.Property<int?>("Id_client")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Login")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("varchar(30)");
 
                     b.HasKey("Id_user");
+
+                    b.HasIndex("Id_client");
+
+                    b.HasIndex("Login")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -170,8 +202,10 @@ namespace kworking.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id_workplace"));
 
-                    b.Property<int>("Content")
-                        .HasColumnType("integer");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -184,7 +218,46 @@ namespace kworking.API.Migrations
 
                     b.HasKey("Id_workplace");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.ToTable("WorkPlaces");
+                });
+
+            modelBuilder.Entity("kworking.API.Models.Booking", b =>
+                {
+                    b.HasOne("kworking.API.Models.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("Id_client")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Tariff", "Tariff")
+                        .WithMany()
+                        .HasForeignKey("Id_tariff")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("kworking.API.Models.WorkPlace", "WorkPlace")
+                        .WithMany()
+                        .HasForeignKey("Id_workPlace")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Tariff");
+
+                    b.Navigation("WorkPlace");
+                });
+
+            modelBuilder.Entity("kworking.API.Models.User", b =>
+                {
+                    b.HasOne("kworking.API.Models.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("Id_client");
+
+                    b.Navigation("Client");
                 });
 #pragma warning restore 612, 618
         }
