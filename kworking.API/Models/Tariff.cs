@@ -19,10 +19,17 @@ namespace kworking.API.Models
         [MaxLength(500)]
         public string Info { get; set; } = string.Empty;
 
-        // Длительность в часах — для почасовой аренды
-        public int? DurationHours { get; set; }
 
-        // Срок действия в днях — для абонемента
+        public int? DurationHours { get; set; }
+        
         public int? ValidDays { get; set; }
+
+
+        public bool IsService { get; set; } = false;
+
+        [MaxLength(20)]
+        public string? PricingType { get; set; } 
+
+        public int? AvailableQuantity { get; set; }
     }
 }

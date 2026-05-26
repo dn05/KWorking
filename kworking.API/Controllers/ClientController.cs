@@ -8,7 +8,7 @@ namespace kworking.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Исправлено: контроллер был полностью открыт
+    [Authorize] 
     public class ClientController : ControllerBase
     {
         private readonly KworkingDbContext _db;
@@ -20,7 +20,7 @@ namespace kworking.API.Controllers
             _logger = logger;
         }
 
-        // Список клиентов — только персонал
+
         [HttpGet]
         [Authorize(Roles = "Administrator,SuperAdmin,Employee,Cashier")]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -40,7 +40,7 @@ namespace kworking.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Administrator,SuperAdmin,Employee,Cashier")]
+        [Authorize(Roles = "Administrator,SuperAdmin,Employee,Cashier,Client")]
         public async Task<ActionResult<Client>> GetById(int id)
         {
             var client = await _db.Clients.FindAsync(id);
@@ -50,7 +50,7 @@ namespace kworking.API.Controllers
             return Ok(client);
         }
 
-        // Создание клиента вручную — только администраторы
+
         [HttpPost]
         [Authorize(Roles = "Administrator,SuperAdmin")]
         public async Task<ActionResult<Client>> Create([FromBody] Client client)
@@ -72,7 +72,7 @@ namespace kworking.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrator,SuperAdmin")]
+        [Authorize(Roles = "Administrator,SuperAdmin,Client")]
         public async Task<IActionResult> Update(int id, [FromBody] Client updatedClient)
         {
             if (id != updatedClient.Id)

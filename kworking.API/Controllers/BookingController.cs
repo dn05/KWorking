@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 using kworking.API.Data;
 using kworking.API.Models;
 
@@ -39,12 +40,12 @@ namespace kworking.API.Controllers
             return role is nameof(UserRole.Administrator) or nameof(UserRole.SuperAdmin);
         }
 
-        // GET /api/booking
+
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 10;
+            if (pageSize < 1 || pageSize > 500) pageSize = 500;
 
             var role = GetCurrentRole();
             IQueryable<Booking> query;
@@ -78,7 +79,7 @@ namespace kworking.API.Controllers
             return Ok(bookings);
         }
 
-        // GET /api/booking/{id}
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Booking>> GetById(int id)
         {
@@ -97,7 +98,7 @@ namespace kworking.API.Controllers
             return Ok(booking);
         }
 
-        // POST /api/booking
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateBookingRequest request)
         {
@@ -137,29 +138,73 @@ namespace kworking.API.Controllers
             if (workPlace.Status == WorkPlaceStatus.busy)
                 return BadRequest($"Рабочее место '{workPlace.Name}' сейчас занято");
 
-            if (await _db.Bookings.AnyAsync(b =>
-                b.Id_workPlace == request.Id_workPlace &&
-                b.Status == BookingStatus.Active &&
-                b.StartDate < endDate &&
-                b.EndDate > startDate))
-                return Conflict("На это рабочее место уже есть активное бронирование в указанный период");
+            var isOpenSpace = workPlace.Type == "OpenSpace";
+            if (isOpenSpace)
+            {
+                var capacity = workPlace.Capacity ?? 1;
+                var concurrentCount = await _db.Bookings.CountAsync(b =>
+                    b.Id_workPlace == request.Id_workPlace &&
+                    (b.Status == BookingStatus.Active || b.Status == BookingStatus.PendingConfirmation) &&
+                    b.StartDate < endDate &&
+                    b.EndDate > startDate);
+                if (concurrentCount >= capacity)
+                    return Conflict($"Все места в '{workPlace.Name}' заняты на указанный период");
+            }
+            else
+            {
+                if (await _db.Bookings.AnyAsync(b =>
+                    b.Id_workPlace == request.Id_workPlace &&
+                    (b.Status == BookingStatus.Active || b.Status == BookingStatus.PendingConfirmation) &&
+                    b.StartDate < endDate &&
+                    b.EndDate > startDate))
+                    return Conflict("На это рабочее место уже есть бронирование в указанный период");
+            }
 
-            var tariff = await _db.Tariffs.FindAsync(request.Id_tariff);
-            if (tariff == null)
-                return NotFound($"Тариф с ID {request.Id_tariff} не найден");
 
-            var price = CalculatePrice(tariff, startDate, endDate, out string? priceError);
-            if (priceError != null)
-                return BadRequest(priceError);
+            var hasSub = await _db.Payments.AnyAsync(p =>
+                p.IsSubscription &&
+                p.Id_client == clientId &&
+                p.Status == PaymentStatus.Paid &&
+                p.SubscriptionEnd > DateTime.UtcNow);
+
+            var hours = (decimal)(endDate - startDate).TotalHours;
+            var placePrice = hasSub ? 0m : Math.Round(workPlace.PricePerHour * hours, 2);
+
+
+            decimal servicesPrice = 0m;
+            string? servicesJson  = null;
+
+            if (request.Services != null && request.Services.Count > 0)
+            {
+                var svcIds  = request.Services.Select(s => s.Id_service).ToList();
+                var svcList = await _db.Tariffs
+                    .Where(t => t.IsService && svcIds.Contains(t.Id_tariff))
+                    .ToListAsync();
+
+                var lines = new List<object>();
+                foreach (var svc in request.Services)
+                {
+                    var t = svcList.FirstOrDefault(x => x.Id_tariff == svc.Id_service);
+                    if (t == null) continue;
+                    var qty      = Math.Max(1, svc.Quantity);
+                    var lineAmt  = t.PricingType == "Hourly"
+                        ? Math.Round(t.Price * hours * qty, 2)
+                        : Math.Round(t.Price * qty, 2);
+                    servicesPrice += lineAmt;
+                    lines.Add(new { id_service = t.Id_tariff, name = t.Name, quantity = qty, price = lineAmt });
+                }
+                servicesJson = JsonSerializer.Serialize(lines);
+            }
 
             var booking = new Booking
             {
                 Id_client    = clientId,
                 Id_workPlace = request.Id_workPlace,
-                Id_tariff    = request.Id_tariff,
+                Id_tariff    = null,
                 StartDate    = startDate,
                 EndDate      = endDate,
-                LastPrice    = price
+                LastPrice    = placePrice + servicesPrice,
+                ServicesJson = servicesJson,
             };
 
             if (IsAdminOrAbove())
@@ -180,7 +225,7 @@ namespace kworking.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = booking.Id_booking }, booking);
         }
 
-        // PATCH /api/booking/{id}/confirm
+
         [HttpPatch("{id}/confirm")]
         [Authorize(Roles = "Administrator,SuperAdmin")]
         public async Task<IActionResult> Confirm(int id)
@@ -195,13 +240,29 @@ namespace kworking.API.Controllers
             if (booking.Status != BookingStatus.PendingConfirmation)
                 return BadRequest("Подтвердить можно только бронирование в статусе PendingConfirmation");
 
-            if (await _db.Bookings.AnyAsync(b =>
-                b.Id_workPlace == booking.Id_workPlace &&
-                b.Status == BookingStatus.Active &&
-                b.Id_booking != id &&
-                b.StartDate < booking.EndDate &&
-                b.EndDate > booking.StartDate))
-                return Conflict("На это рабочее место уже появилось активное бронирование в указанный период");
+            var wp = booking.WorkPlace ?? await _db.WorkPlaces.FindAsync(booking.Id_workPlace);
+            if (wp != null && wp.Type == "OpenSpace")
+            {
+                var cap = wp.Capacity ?? 1;
+                var cnt = await _db.Bookings.CountAsync(b =>
+                    b.Id_workPlace == booking.Id_workPlace &&
+                    b.Status == BookingStatus.Active &&
+                    b.Id_booking != id &&
+                    b.StartDate < booking.EndDate &&
+                    b.EndDate > booking.StartDate);
+                if (cnt >= cap)
+                    return Conflict($"Все места в '{wp.Name}' уже заняты на указанный период");
+            }
+            else
+            {
+                if (await _db.Bookings.AnyAsync(b =>
+                    b.Id_workPlace == booking.Id_workPlace &&
+                    b.Status == BookingStatus.Active &&
+                    b.Id_booking != id &&
+                    b.StartDate < booking.EndDate &&
+                    b.EndDate > booking.StartDate))
+                    return Conflict("На это рабочее место уже появилось активное бронирование в указанный период");
+            }
 
             booking.Status = BookingStatus.Active;
             if (booking.WorkPlace != null)
@@ -217,7 +278,7 @@ namespace kworking.API.Controllers
             return NoContent();
         }
 
-        // PATCH /api/booking/{id}/cancel
+
         [HttpPatch("{id}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {
@@ -250,7 +311,7 @@ namespace kworking.API.Controllers
             return NoContent();
         }
 
-        // PATCH /api/booking/{id}/complete
+
         [HttpPatch("{id}/complete")]
         [Authorize(Roles = "Administrator,SuperAdmin,Employee,Cashier")]
         public async Task<IActionResult> Complete(int id)
@@ -279,7 +340,6 @@ namespace kworking.API.Controllers
             return NoContent();
         }
 
-        // PUT /api/booking/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Administrator,SuperAdmin")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateBookingRequest request)
@@ -300,10 +360,6 @@ namespace kworking.API.Controllers
             if (booking.Status != BookingStatus.Active)
                 return BadRequest("Редактировать можно только активное бронирование");
 
-            var tariff = await _db.Tariffs.FindAsync(request.Id_tariff);
-            if (tariff == null)
-                return NotFound($"Тариф с ID {request.Id_tariff} не найден");
-
             var startDate = DateTime.SpecifyKind(request.StartDate, DateTimeKind.Utc);
             var endDate   = DateTime.SpecifyKind(request.EndDate,   DateTimeKind.Utc);
 
@@ -318,13 +374,21 @@ namespace kworking.API.Controllers
                 b.EndDate > startDate))
                 return Conflict("На это рабочее место уже есть активное бронирование в указанный период");
 
-            var price = CalculatePrice(tariff, startDate, endDate, out string? priceError);
-            if (priceError != null)
-                return BadRequest(priceError);
+            var workPlace = booking.WorkPlace;
+            if (workPlace == null)
+            {
+                workPlace = await _db.WorkPlaces.FindAsync(booking.Id_workPlace);
+                if (workPlace == null) return NotFound("Рабочее место не найдено");
+            }
+
+            var hours     = (decimal)(endDate - startDate).TotalHours;
+            var hasSub    = await _db.Payments.AnyAsync(p =>
+                p.IsSubscription && p.Id_client == booking.Id_client &&
+                p.Status == PaymentStatus.Paid && p.SubscriptionEnd > DateTime.UtcNow);
+            var price     = hasSub ? 0m : Math.Round(workPlace.PricePerHour * hours, 2);
 
             booking.StartDate = startDate;
             booking.EndDate   = endDate;
-            booking.Id_tariff = request.Id_tariff;
             booking.LastPrice = price;
 
             _db.Bookings.Update(booking);
@@ -333,8 +397,7 @@ namespace kworking.API.Controllers
             _logger.LogInformation("Обновлено бронирование ID:{Id}", id);
             return NoContent();
         }
-
-        // GET /api/booking/pending
+        
         [HttpGet("pending")]
         [Authorize(Roles = "Administrator,SuperAdmin")]
         public async Task<ActionResult<List<Booking>>> GetPending()
@@ -349,7 +412,7 @@ namespace kworking.API.Controllers
             return Ok(bookings);
         }
 
-        // GET /api/booking/active
+
         [HttpGet("active")]
         [Authorize(Roles = "Administrator,SuperAdmin,Employee,Cashier")]
         public async Task<ActionResult<List<Booking>>> GetActive()
@@ -364,7 +427,7 @@ namespace kworking.API.Controllers
             return Ok(bookings);
         }
 
-        // GET /api/booking/client/{clientId}
+
         [HttpGet("client/{clientId}")]
         public async Task<ActionResult<List<Booking>>> GetByClient(int clientId)
         {
@@ -383,7 +446,7 @@ namespace kworking.API.Controllers
             return Ok(bookings);
         }
 
-        // GET /api/booking/workplace/{workplaceId}
+
         [HttpGet("workplace/{workplaceId}")]
         [Authorize(Roles = "Administrator,SuperAdmin,Employee,Cashier")]
         public async Task<ActionResult<List<Booking>>> GetByWorkPlace(int workplaceId)
@@ -400,7 +463,29 @@ namespace kworking.API.Controllers
             return Ok(bookings);
         }
 
-        // GET /api/booking/search
+
+        [HttpGet("availability")]
+        public async Task<IActionResult> GetAvailability([FromQuery] int workplaceId)
+        {
+            var workPlace = await _db.WorkPlaces.FindAsync(workplaceId);
+            if (workPlace == null)
+                return NotFound($"Рабочее место с ID {workplaceId} не найдено");
+
+            var bookings = await _db.Bookings
+                .Where(b => b.Id_workPlace == workplaceId &&
+                            (b.Status == BookingStatus.Active || b.Status == BookingStatus.PendingConfirmation))
+                .Select(b => new { b.StartDate, b.EndDate })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                type     = workPlace.Type,
+                capacity = workPlace.Capacity ?? 1,
+                bookings,
+            });
+        }
+
+
         [HttpGet("search")]
         [Authorize(Roles = "Administrator,SuperAdmin,Employee,Cashier")]
         public async Task<ActionResult<List<Booking>>> Search(
@@ -424,40 +509,28 @@ namespace kworking.API.Controllers
             return Ok(await query.OrderBy(b => b.StartDate).ToListAsync());
         }
 
-        // ─── Helper ───────────────────────────────────────────────────
-
-        private static decimal CalculatePrice(Tariff tariff, DateTime start, DateTime end, out string? error)
-        {
-            error = null;
-            if (tariff.DurationHours.HasValue)
-            {
-                var hours = (decimal)(end - start).TotalHours;
-                if (hours <= 0) { error = "Дата окончания должна быть позже даты начала"; return 0; }
-                return Math.Round(tariff.Price * hours, 2);
-            }
-            if (tariff.ValidDays.HasValue)
-                return tariff.Price;
-
-            error = "Тариф некорректен: не указана ни длительность, ни срок действия";
-            return 0;
-        }
     }
 
-    // ─── Request models ───────────────────────────────────────────────
+
+
+    public class BookingServiceItem
+    {
+        public int Id_service { get; set; }
+        public int Quantity   { get; set; } = 1;
+    }
 
     public class CreateBookingRequest
     {
         public int?     Id_client    { get; set; }
         public int      Id_workPlace { get; set; }
-        public int      Id_tariff    { get; set; }
         public DateTime StartDate    { get; set; }
         public DateTime EndDate      { get; set; }
+        public List<BookingServiceItem>? Services { get; set; }
     }
 
     public class UpdateBookingRequest
     {
         public int      Id_booking { get; set; }
-        public int      Id_tariff  { get; set; }
         public DateTime StartDate  { get; set; }
         public DateTime EndDate    { get; set; }
     }

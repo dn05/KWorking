@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using kworking.API.Data;
 using kworking.API.Models;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace kworking.API.Controllers;
 
@@ -61,8 +62,32 @@ public class WorkPlaceController : ControllerBase
         await _db.SaveChangesAsync();
 
         _logger.LogInformation($"Создано рабочее место ID:{workPlace.Id_workplace}");
-
         return CreatedAtAction(nameof(GetById), new { id = workPlace.Id_workplace }, workPlace);
+    }
+
+    [HttpPost("upload-photo")]
+    [Authorize(Roles = "Administrator,SuperAdmin")]
+    public async Task<IActionResult> UploadPhoto(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("Файл не выбран");
+
+        if (!file.ContentType.StartsWith("image/"))
+            return BadRequest("Разрешены только изображения");
+
+        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "workplaces");
+        if (!Directory.Exists(uploadsPath))
+            Directory.CreateDirectory(uploadsPath);
+
+        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var fullPath = Path.Combine(uploadsPath, fileName);
+
+        await using var stream = new FileStream(fullPath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        var photoUrl = $"/uploads/workplaces/{fileName}";
+
+        return Ok(new { photoUrl });
     }
 
     [HttpPut("{id}")]
@@ -79,10 +104,13 @@ public class WorkPlaceController : ControllerBase
         if (await _db.WorkPlaces.AnyAsync(w => w.Name == updatedWorkPlace.Name && w.Id_workplace != id))
             return Conflict($"Рабочее место с названием '{updatedWorkPlace.Name}' уже существует");
 
-        workPlace.Name = updatedWorkPlace.Name;
+        // Обновляем все поля
+        workPlace.Name        = updatedWorkPlace.Name;
         workPlace.Description = updatedWorkPlace.Description;
-        workPlace.Type = updatedWorkPlace.Type;
-        workPlace.Capacity = updatedWorkPlace.Capacity;
+        workPlace.Type        = updatedWorkPlace.Type;
+        workPlace.Capacity    = updatedWorkPlace.Capacity;
+        workPlace.PricePerHour = updatedWorkPlace.PricePerHour;
+        workPlace.PhotoUrl    = updatedWorkPlace.PhotoUrl;   // ← Добавили
 
         _db.WorkPlaces.Update(workPlace);
         await _db.SaveChangesAsync();
@@ -99,8 +127,32 @@ public class WorkPlaceController : ControllerBase
         if (workPlace == null)
             return NotFound($"Рабочее место с ID {id} не найдено");
 
-        if (await _db.Bookings.AnyAsync(b => b.Id_workPlace == id && b.Status == BookingStatus.Active))
-            return BadRequest("Нельзя удалить рабочее место с активными бронированиями");
+
+        var hasActive = await _db.Bookings.AnyAsync(b =>
+            b.Id_workPlace == id &&
+            (b.Status == BookingStatus.Active || b.Status == BookingStatus.PendingConfirmation));
+
+        if (hasActive)
+            return Conflict("Нельзя удалить рабочее место с активными бронированиями");
+
+
+        var bookingIds = await _db.Bookings
+            .Where(b => b.Id_workPlace == id)
+            .Select(b => b.Id_booking)
+            .ToListAsync();
+
+        if (bookingIds.Count > 0)
+        {
+            var payments = await _db.Payments
+                .Where(p => p.Id_booking != null && bookingIds.Contains(p.Id_booking!.Value))
+                .ToListAsync();
+            payments.ForEach(p => p.Id_booking = null);
+
+            var bookings = await _db.Bookings
+                .Where(b => bookingIds.Contains(b.Id_booking))
+                .ToListAsync();
+            _db.Bookings.RemoveRange(bookings);
+        }
 
         _db.WorkPlaces.Remove(workPlace);
         await _db.SaveChangesAsync();

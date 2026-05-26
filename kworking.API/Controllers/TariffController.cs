@@ -19,7 +19,7 @@ namespace kworking.API.Controllers
             _logger = logger;
         }
 
-        // Тарифы читают все (в т.ч. неавторизованные — для отображения на сайте)
+        
         [HttpGet]
         public async Task<ActionResult<List<Tariff>>> GetAll()
             => Ok(await _db.Tariffs.OrderBy(t => t.Id_tariff).ToListAsync());
@@ -97,7 +97,7 @@ namespace kworking.API.Controllers
             if (tariff == null)
                 return NotFound($"Тариф с ID {id} не найден");
 
-            if (await _db.Bookings.AnyAsync(b => b.Id_tariff == id && b.Status == BookingStatus.Active))
+            if (await _db.Bookings.AnyAsync(b => b.Id_tariff != null && b.Id_tariff == id && b.Status == BookingStatus.Active))
                 return BadRequest("Нельзя удалить тариф с активными бронированиями");
 
             _db.Tariffs.Remove(tariff);

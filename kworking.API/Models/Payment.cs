@@ -16,8 +16,15 @@ namespace kworking.API.Models
         [Key]
         public int Id_payment { get; set; }
 
-        [Required]
-        public int Id_booking { get; set; }
+        public int? Id_booking { get; set; }
+
+        public int? Id_client { get; set; }
+
+        public bool IsSubscription { get; set; } = false;
+
+        public DateTime? SubscriptionStart { get; set; }
+
+        public DateTime? SubscriptionEnd { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
@@ -30,5 +37,9 @@ namespace kworking.API.Models
         [ForeignKey(nameof(Id_booking))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public virtual Booking? Booking { get; set; }
+
+        [ForeignKey(nameof(Id_client))]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public virtual Client? Client { get; set; }
     }
 }

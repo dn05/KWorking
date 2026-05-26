@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:16
+    container_name: kworking-db
+    restart: always
+    environment:
+      POSTGRES_DB: kWorking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "0515"
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kworking-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:5175
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=kWorking;Username=postgres;Password=0515"
+      Jwt__Key: "kworking-super-secret-key-minimum-32-characters-long-key!"
+      Jwt__Issuer: "kworking-api"
+      Jwt__Audience: "kworking-client"
+    ports:
+      - "5175:5175"
+
+  frontend:
+    image: nginx:alpine
+    container_name: kworking-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5500:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  pgdata:

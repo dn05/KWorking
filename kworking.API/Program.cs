@@ -23,12 +23,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ─── Logging ──────────────────────────────────────────────────
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// ─── JWT Authentication ───────────────────────────────────────
+
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT Key not configured");
 
@@ -47,11 +47,11 @@ builder.Services
             ValidIssuer              = builder.Configuration["Jwt:Issuer"],
             ValidAudience            = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey         = new SymmetricSecurityKey(key),
-            ClockSkew                = TimeSpan.Zero // Токен истекает ровно по времени
+            ClockSkew                = TimeSpan.Zero 
         };
     });
 
-// ─── Controllers ──────────────────────────────────────────────
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -59,12 +59,12 @@ builder.Services.AddControllers()
             new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
-// ─── Database ─────────────────────────────────────────────────
+
 builder.Services.AddDbContext<KworkingDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ─── Swagger ──────────────────────────────────────────────────
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -100,7 +100,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ─── CORS ─────────────────────────────────────────────────────
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -109,8 +109,26 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
-// ─── Build ────────────────────────────────────────────────────
+
 var app = builder.Build();
+
+// ── Автоматическое применение миграций при старте ──────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<KworkingDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        logger.LogInformation("Применяю миграции...");
+        db.Database.Migrate();
+        logger.LogInformation("Миграции применены успешно.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Ошибка при применении миграций. Приложение продолжит работу.");
+    }
+}
+// ───────────────────────────────────────────────────────────
 
 if (app.Environment.IsDevelopment())
 {
@@ -121,9 +139,14 @@ else
 {
     app.UseHttpsRedirection();
 }
+
+// === КРИТИЧНО ВАЖНО ===
+app.UseStaticFiles();                  
+
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

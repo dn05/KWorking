@@ -23,9 +23,7 @@ namespace kworking.API.Controllers
 
         private int GetCurrentUserId()
             => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-        // GET /api/user
-        // Пароль не возвращается — [JsonIgnore] на модели User
+        
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -43,8 +41,7 @@ namespace kworking.API.Controllers
                 ClientName = u.Client != null ? $"{u.Client.Name} {u.Client.Surname}" : null
             }));
         }
-
-        // GET /api/user/{id}
+        
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -65,9 +62,7 @@ namespace kworking.API.Controllers
             });
         }
 
-        // POST /api/user
-        // Создаёт Employee / Cashier / Administrator.
-        // SuperAdmin создаётся только прямым INSERT в БД.
+        
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
         {
@@ -76,8 +71,7 @@ namespace kworking.API.Controllers
 
             if (request.Role == UserRole.SuperAdmin)
                 return Forbid();
-
-            // Только SuperAdmin может создать Administrator
+            
             if (request.Role == UserRole.Administrator)
             {
                 var me = await _db.Users.FindAsync(GetCurrentUserId());
@@ -113,7 +107,7 @@ namespace kworking.API.Controllers
             });
         }
 
-        // PUT /api/user/{id}
+        
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateUserRequest request)
         {
@@ -149,7 +143,7 @@ namespace kworking.API.Controllers
             return NoContent();
         }
 
-        // DELETE /api/user/{id}
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -167,7 +161,7 @@ namespace kworking.API.Controllers
             return NoContent();
         }
 
-        // PATCH /api/user/{id}/role
+    
         [HttpPatch("{id}/role")]
         public async Task<IActionResult> UpdateRole(int id, [FromQuery] UserRole role)
         {
@@ -193,8 +187,7 @@ namespace kworking.API.Controllers
             return NoContent();
         }
 
-        // GET /api/user/role/{role}
-        // Поддерживает все роли: Client, Employee, Cashier, Administrator, SuperAdmin
+        
         [HttpGet("role/{role}")]
         public async Task<IActionResult> GetByRole(UserRole role)
         {
@@ -215,7 +208,7 @@ namespace kworking.API.Controllers
         }
     }
 
-    // ─── Request models ───────────────────────────────────────────────
+
 
     public class CreateUserRequest
     {

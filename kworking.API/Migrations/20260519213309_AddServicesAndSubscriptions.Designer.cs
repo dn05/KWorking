@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using kworking.API.Data;
@@ -11,9 +12,11 @@ using kworking.API.Data;
 namespace kworking.API.Migrations
 {
     [DbContext(typeof(KworkingDbContext))]
-    partial class KworkingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519213309_AddServicesAndSubscriptions")]
+    partial class AddServicesAndSubscriptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -247,10 +250,6 @@ namespace kworking.API.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
-
-                    b.Property<string>("PhotoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
 
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("decimal(18,2)");

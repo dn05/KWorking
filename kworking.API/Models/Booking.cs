@@ -23,8 +23,7 @@ namespace kworking.API.Models
         [Required]
         public int Id_workPlace { get; set; }
 
-        [Required]
-        public int Id_tariff { get; set; }
+        public int? Id_tariff { get; set; }
 
         [Required]
         public DateTime StartDate { get; set; }
@@ -37,6 +36,9 @@ namespace kworking.API.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal LastPrice { get; set; }
+
+        [MaxLength(2000)]
+        public string? ServicesJson { get; set; }
 
         [ForeignKey(nameof(Id_client))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

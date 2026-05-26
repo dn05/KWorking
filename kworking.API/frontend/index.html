@@ -3,31 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KWorking - Коворкинг</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>KWorking — Коворкинг-пространство</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<!-- Header вставляется автоматически через JS -->
+    <div id="toast" class="toast"></div>
 
-<!-- HERO -->
-<section class="hero">
-    <div class="hero-content">
-        <h1>Работай в лучшем месте</h1>
-        <p>Современный коворкинг с удобными рабочими местами, высокоскоростным интернетом и комфортной атмосферой</p>
-        <button class="btn btn-primary" onclick="window.location.href='catalog.html'">Выбрать место</button>
+    <nav class="navbar" id="navbar">
+        <div class="navbar__logo" data-nav="home">KWorking</div>
+        <div class="navbar__links" id="navbar-links"></div>
+        <div class="navbar__right" id="navbar-right"></div>
+    </nav>
+
+    <!-- ── ЛЕНДИНГ ─────────────────────────────────────────── -->
+    <div id="page-home" class="page">
+        <section class="hero">
+            <div class="hero__inner">
+                <span class="hero__tag">Коворкинг-пространство</span>
+                <h1 class="hero__title">KWorking</h1>
+                <p class="hero__subtitle">
+                    Современные рабочие места, гибкие тарифы<br>
+                    и онлайн-бронирование — всё в одном месте
+                </p>
+                <div class="hero__actions">
+                    <button class="btn btn--ghost-light" data-nav="login">Войти</button>
+                    <button class="btn btn--accent" data-nav="register">Зарегистрироваться</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">Почему KWorking?</h2>
+                <div class="features__grid">
+                    <div class="feature-card">
+                        <div class="feature-card__icon">🏢</div>
+                        <h3 class="feature-card__title">Удобные рабочие места</h3>
+                        <p>Одиночные столы, переговорные комнаты и тихие зоны для любых задач</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card__icon">📅</div>
+                        <h3 class="feature-card__title">Онлайн-бронирование</h3>
+                        <p>Бронируйте нужное место в несколько кликов — без звонков и ожидания</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card__icon">💰</div>
+                        <h3 class="feature-card__title">Гибкие тарифы</h3>
+                        <p>Почасовая аренда или абонемент — подберите тариф под свои задачи</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container">
+                <span>© 2026 KWorking. Все права защищены.</span>
+            </div>
+        </footer>
     </div>
-</section>
 
-<!-- Популярные места -->
-<section class="section" id="popular">
-    <h2>Популярные рабочие места</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;" id="popular-cards">
-        <!-- JS заполнит -->
+    <!-- ── ПУБЛИЧНЫЕ СТРАНИЦЫ ────────────────────────────────── -->
+    <div id="page-booking" class="page hidden"></div>
+    <div id="page-workplaces-pub" class="page hidden"></div>
+    <div id="page-services-pub" class="page hidden"></div>
+
+    <!-- ── ВХОД ────────────────────────────────────────────── -->
+    <div id="page-login" class="auth-page hidden">
+        <div class="auth-card">
+            <h2 class="auth-card__title">Вход в систему</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label">Логин</label>
+                    <input class="form-input" type="text" id="inp-login" placeholder="Введите логин" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input class="form-input" type="password" id="inp-login-pass" placeholder="Введите пароль" required autocomplete="current-password">
+                </div>
+                <div id="login-error" class="form-error" style="display:none"></div>
+                <button class="btn btn--accent btn--block" type="submit">Войти</button>
+            </form>
+            <p class="auth-card__footer">
+                <a class="link" id="btn-forgot-pass" href="#">Забыли пароль?</a>
+            </p>
+            <p class="auth-card__footer">Нет аккаунта? <a class="link" data-nav="register">Зарегистрироваться</a></p>
+        </div>
     </div>
-</section>
 
-<script src="js/api.js"></script>
-<script src="components/header.js"></script>
-<script src="js/main.js"></script>
+    <!-- ── РЕГИСТРАЦИЯ ─────────────────────────────────────── -->
+    <div id="page-register" class="auth-page hidden">
+        <div class="auth-card auth-card--wide">
+            <h2 class="auth-card__title">Регистрация</h2>
+            <form id="register-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Имя</label>
+                        <input class="form-input" type="text" id="inp-reg-name" placeholder="Имя" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Фамилия</label>
+                        <input class="form-input" type="text" id="inp-reg-surname" placeholder="Фамилия" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Логин</label>
+                    <input class="form-input" type="text" id="inp-reg-login" placeholder="Придумайте логин" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input class="form-input" type="password" id="inp-reg-pass" placeholder="Придумайте пароль" required autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" type="email" id="inp-reg-email" placeholder="email@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Телефон</label>
+                    <input class="form-input" type="tel" id="inp-reg-phone" placeholder="+7XXXXXXXXXX" value="+7" required>
+                    <small style="color:var(--muted);font-size:.78rem">Формат: +7 и 10 цифр</small>
+                    <div class="phone-err" style="display:none;color:#8a2222;font-size:.8rem;margin-top:2px">Можно вводить только цифры</div>
+                </div>
+                <div id="register-error" class="form-error" style="display:none"></div>
+                <button class="btn btn--accent btn--block" type="submit">Зарегистрироваться</button>
+            </form>
+            <p class="auth-card__footer">Уже есть аккаунт? <a class="link" data-nav="login">Войти</a></p>
+        </div>
+    </div>
+
+    <!-- ── ОБОЛОЧКА ПРИЛОЖЕНИЯ ─────────────────────────────── -->
+    <div id="app-shell" class="app-shell hidden">
+        <aside class="sidebar">
+            <nav id="sidebar-nav" class="sidebar__nav"></nav>
+            <div class="sidebar__user" id="sidebar-user"></div>
+        </aside>
+        <main id="page-content" class="main-content"></main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/pages/dashboard.js"></script>
+    <script src="js/pages/workplaces.js"></script>
+    <script src="js/pages/bookings.js"></script>
+    <script src="js/pages/tariffs.js"></script>
+    <script src="js/pages/clients.js"></script>
+    <script src="js/pages/users.js"></script>
+    <script src="js/pages/payments.js"></script>
+    <script src="js/pages/services.js"></script>
+    <script src="js/pages/subscriptions.js"></script>
+    <script src="js/pages/profile.js"></script>
+    <script src="js/pages/home.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

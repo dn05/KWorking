@@ -19,7 +19,7 @@ namespace kworking.API.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Decimal precision
+
             modelBuilder.Entity<Tariff>()
                 .Property(t => t.Price)
                 .HasColumnType("decimal(18,2)");
@@ -32,7 +32,7 @@ namespace kworking.API.Data
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
 
-            // Уникальные индексы
+
             modelBuilder.Entity<Client>()
                 .HasIndex(c => c.Email).IsUnique();
 
@@ -47,8 +47,7 @@ namespace kworking.API.Data
 
             modelBuilder.Entity<WorkPlace>()
                 .HasIndex(w => w.Name).IsUnique();
-
-            // Связи
+            
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.Client)
                 .WithMany()
@@ -65,13 +64,22 @@ namespace kworking.API.Data
                 .HasOne(b => b.Tariff)
                 .WithMany()
                 .HasForeignKey(b => b.Id_tariff)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
 
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Booking)
                 .WithMany()
                 .HasForeignKey(p => p.Id_booking)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Client)
+                .WithMany()
+                .HasForeignKey(p => p.Id_client)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
 
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Client)

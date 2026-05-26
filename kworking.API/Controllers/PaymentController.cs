@@ -20,15 +20,24 @@ namespace kworking.API.Controllers
             _logger = logger;
         }
 
+        private IQueryable<Payment> BookingPayments =>
+            _db.Payments.Where(p => !p.IsSubscription && p.Id_booking != null);
+
+        private static IQueryable<Payment> WithDetails(IQueryable<Payment> q) =>
+            q.Include(p => p.Booking)
+                .ThenInclude(b => b!.Client)
+             .Include(p => p.Booking)
+                .ThenInclude(b => b!.WorkPlace);
+
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             if (page < 1) page = 1;
-            if (pageSize < 1 || pageSize > 100) pageSize = 10;
+            if (pageSize < 1 || pageSize > 500) pageSize = 20;
 
-            var totalCount = await _db.Payments.CountAsync();
-            var payments = await _db.Payments
-                .Include(p => p.Booking)
+            var base_q = BookingPayments;
+            var totalCount = await base_q.CountAsync();
+            var payments = await WithDetails(base_q)
                 .OrderBy(p => p.Id_payment)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -41,8 +50,7 @@ namespace kworking.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Payment>> GetById(int id)
         {
-            var payment = await _db.Payments
-                .Include(p => p.Booking)
+            var payment = await WithDetails(BookingPayments)
                 .FirstOrDefaultAsync(p => p.Id_payment == id);
 
             if (payment == null)
@@ -52,26 +60,42 @@ namespace kworking.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Payment>> Create([FromBody] Payment payment)
+        [Authorize(Roles = "Administrator,SuperAdmin,Cashier")]
+        public async Task<IActionResult> Create([FromBody] CreatePaymentRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (request.Id_booking <= 0)
+                return BadRequest("Укажите ID бронирования");
 
-            var booking = await _db.Bookings.FindAsync(payment.Id_booking);
+            var booking = await _db.Bookings.FindAsync(request.Id_booking);
             if (booking == null)
-                return NotFound($"Бронирование с ID {payment.Id_booking} не найдено");
+                return NotFound($"Бронирование с ID {request.Id_booking} не найдено");
 
-            if (await _db.Payments.AnyAsync(p => p.Id_booking == payment.Id_booking && p.Status == PaymentStatus.Pending))
-                return Conflict("Для этого бронирования уже есть неоплаченный платёж");
+            if (await _db.Payments.AnyAsync(p =>
+                    p.Id_booking == request.Id_booking &&
+                    !p.IsSubscription &&
+                    p.Status == PaymentStatus.Paid))
+                return Conflict("Бронирование уже оплачено");
 
-            payment.Price       = booking.LastPrice;
-            payment.Status      = PaymentStatus.Pending;
-            payment.PaymentDate = DateTime.UtcNow;
+     
+            var pending = await _db.Payments
+                .Where(p => p.Id_booking == request.Id_booking &&
+                            !p.IsSubscription &&
+                            p.Status == PaymentStatus.Pending)
+                .ToListAsync();
+            pending.ForEach(p => p.Status = PaymentStatus.Cancelled);
+
+            var payment = new Payment
+            {
+                Id_booking  = request.Id_booking,
+                Price       = booking.LastPrice,
+                Status      = PaymentStatus.Paid,
+                PaymentDate = DateTime.UtcNow,
+            };
 
             await _db.Payments.AddAsync(payment);
             await _db.SaveChangesAsync();
 
-            _logger.LogInformation("Создан платёж ID:{Id} для бронирования {BookingId}", payment.Id_payment, payment.Id_booking);
+            _logger.LogInformation("Принята оплата ID:{Id} для бронирования {BookingId}", payment.Id_payment, payment.Id_booking);
             return CreatedAtAction(nameof(GetById), new { id = payment.Id_payment }, payment);
         }
 
@@ -80,7 +104,7 @@ namespace kworking.API.Controllers
         public async Task<IActionResult> Pay(int id)
         {
             var payment = await _db.Payments.FindAsync(id);
-            if (payment == null)
+            if (payment == null || payment.IsSubscription)
                 return NotFound($"Платёж с ID {id} не найден");
 
             if (payment.Status != PaymentStatus.Pending)
@@ -101,7 +125,7 @@ namespace kworking.API.Controllers
         public async Task<IActionResult> Cancel(int id)
         {
             var payment = await _db.Payments.FindAsync(id);
-            if (payment == null)
+            if (payment == null || payment.IsSubscription)
                 return NotFound($"Платёж с ID {id} не найден");
 
             if (payment.Status != PaymentStatus.Pending)
@@ -123,7 +147,7 @@ namespace kworking.API.Controllers
                 return NotFound($"Бронирование с ID {bookingId} не найдено");
 
             var payments = await _db.Payments
-                .Where(p => p.Id_booking == bookingId)
+                .Where(p => p.Id_booking == bookingId && !p.IsSubscription)
                 .OrderBy(p => p.Id_payment)
                 .ToListAsync();
 
@@ -134,8 +158,7 @@ namespace kworking.API.Controllers
         [Authorize(Roles = "Administrator,SuperAdmin,Cashier")]
         public async Task<ActionResult<List<Payment>>> GetDebts()
         {
-            var debts = await _db.Payments
-                .Include(p => p.Booking)
+            var debts = await WithDetails(BookingPayments)
                 .Where(p => p.Status == PaymentStatus.Pending)
                 .OrderBy(p => p.PaymentDate)
                 .ToListAsync();
@@ -149,7 +172,7 @@ namespace kworking.API.Controllers
             [FromQuery] DateTime? startDate = null,
             [FromQuery] DateTime? endDate   = null)
         {
-            var query = _db.Payments
+            var query = BookingPayments
                 .Where(p => p.Status == PaymentStatus.Paid)
                 .AsQueryable();
 
@@ -182,7 +205,7 @@ namespace kworking.API.Controllers
                 _       => now.AddDays(-7),
             };
 
-            var payments = await _db.Payments
+            var payments = await BookingPayments
                 .Where(p => p.Status == PaymentStatus.Paid && p.PaymentDate >= startDate)
                 .OrderBy(p => p.PaymentDate)
                 .ToListAsync();
@@ -206,5 +229,10 @@ namespace kworking.API.Controllers
                 return Ok(new { labels = byDay.Select(g => g.Label), data = byDay.Select(g => g.Total) });
             }
         }
+    }
+
+    public class CreatePaymentRequest
+    {
+        public int Id_booking { get; set; }
     }
 }
