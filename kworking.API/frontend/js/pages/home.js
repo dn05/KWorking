@@ -3,7 +3,7 @@ const homePage = {
 
   
     show(tab) {
-        /* Клиент → отправляем на полноценную страницу бронирования */
+        
         if (tab === 'workplaces' && Auth.isLoggedIn()) {
             App.showSection('workplaces');
             homePage._setActiveLink(null);
@@ -46,7 +46,7 @@ const homePage = {
         return res.json();
     },
 
-    /* ── Бронирование ─── */
+   
     _renderBooking() {
         const isClient = Auth.isLoggedIn() && Auth.get()?.role === 'Client';
         const cta = isClient
@@ -72,7 +72,7 @@ const homePage = {
         );
     },
 
-    /* ── Рабочие места ─── */
+    
     _wpData: [],
 
     async _renderWorkplaces() {
@@ -159,7 +159,7 @@ const homePage = {
         const price = w.pricePerHour ? fmtMoney(w.pricePerHour) + '/ч' : '';
         const cls = w.status === 'free' ? 'wp-card--free' : w.status === 'busy' ? 'wp-card--busy' : 'wp-card--booked';
 
-        // Фото (работает и для гостей, и для авторизованных)
+        
         const baseUrl = 'http://127.0.0.1:5175';
         const photoHtml = w.photoUrl 
             ? `<img src="${baseUrl}${w.photoUrl}" 
@@ -200,7 +200,7 @@ const homePage = {
         openModal('modal-need-auth');
     },
 
-    /* ── Кэш услуг ─── */
+    
     _saveSvcCache(data) {
         try { localStorage.setItem('kw_svc_cache', JSON.stringify(data)); } catch {}
     },
@@ -214,7 +214,7 @@ const homePage = {
         } catch {}
     },
 
-    /* ── Уведомление для раздела услуг ─── */
+    
     _svcNoticeHtml(isLoggedIn) {
         return isLoggedIn
             ? '<div style="background:var(--light);border-left:4px solid var(--medium);border-radius:6px;' +
@@ -230,7 +230,7 @@ const homePage = {
               '</div></div>';
     },
 
-        /* ── Карточки услуг ─── */
+       
     _svcCardsHtml(data) {
         return '<div class="ht-grid">' + data.map(s =>
             '<div class="ht-card">' +
@@ -245,7 +245,7 @@ const homePage = {
         ).join('') + '</div>';
     },
 
-    /* ── Услуги (вкладка navbar) ─── */
+    
     async _renderServices() {
         const isLoggedIn = Auth.isLoggedIn();
         homePage._wrap('page-services-pub', 'Услуги',
@@ -274,7 +274,7 @@ const homePage = {
         }
     },
 
-    /* ── Услуги на главной странице (page-home) ─── */
+    
     async _loadHomepageServices() {
         const notice = document.getElementById('home-svc-notice');
         const grid   = document.getElementById('home-svc-grid');

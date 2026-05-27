@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   УТИЛИТЫ
-═══════════════════════════════════════════════════════════ */
+
 
 function showToast(msg, type) {
     const t = document.getElementById('toast');
@@ -12,7 +10,7 @@ function showToast(msg, type) {
 function toastOk(msg)  { showToast(msg, 'ok'); }
 function toastErr(msg) { showToast(msg, 'err'); }
 
-/* Форматирование */
+
 function fmtDate(d) {
     if (!d) return '—';
     return new Date(d).toLocaleString('ru-RU', {
@@ -26,7 +24,7 @@ function fmtMoney(v) {
     });
 }
 
-/* Карты статусов */
+
 const BOOK_STATUS = {
     PendingConfirmation: ['Ожидает',  'badge--yellow'],
     Active:              ['Активно',  'badge--green'],
@@ -53,7 +51,7 @@ function badge(map, key) {
     return '<span class="badge ' + v[1] + '">' + v[0] + '</span>';
 }
 
-/* Телефонный ввод: +7 + ровно 10 цифр, буквы запрещены */
+
 document.addEventListener('focusin', e => {
     if (e.target.tagName === 'INPUT' && e.target.type === 'tel' && !e.target.value)
         e.target.value = '+7';
@@ -83,7 +81,7 @@ document.addEventListener('keydown', e => {
     }
 });
 
-/* Экранирование HTML */
+
 function esc(s) {
     if (!s && s !== 0) return '';
     return String(s)
@@ -91,7 +89,7 @@ function esc(s) {
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* Модальные окна */
+
 function openModal(id) {
     const m = document.getElementById(id);
     if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -117,7 +115,7 @@ function buildModal(id, title, bodyHtml, footerHtml, wide) {
     document.body.appendChild(div);
 }
 
-/* Дата/время */
+
 function nowLocal() {
     const d = new Date(); d.setSeconds(0,0);
     const off = d.getTimezoneOffset();

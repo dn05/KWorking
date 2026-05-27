@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   ПОЛЬЗОВАТЕЛИ
-═══════════════════════════════════════════════════════════ */
+
 const usersPage = {
     _data: [],
 
@@ -67,7 +65,7 @@ const usersPage = {
         }).join('');
     },
 
-    /* ── Выдать права ──────────────────────────────────────── */
+
     openGrantRole() {
         const roleOpts = ['Employee','Cashier','Administrator'].map(r =>
             '<option value="' + r + '">' + esc(ROLE_LABELS[r] || r) + '</option>'
@@ -144,8 +142,8 @@ const usersPage = {
             await usersPage._load();
         } catch(e) { errEl.textContent = e.message; errEl.style.display='block'; }
     },
+    
 
-    /* ── Редактировать данные (имя, фамилия, телефон, email) ── */
     async openEditData(userId) {
         const u = usersPage._data.find(x => x.id_user === userId);
         if (!u) return;
@@ -191,7 +189,7 @@ const usersPage = {
         } catch(e) { errEl.textContent = e.message; errEl.style.display='block'; }
     },
 
-    /* ── Сменить пароль ────────────────────────────────────── */
+
     openChangePass(userId) {
         const u = usersPage._data.find(x => x.id_user === userId);
         if (!u) return;
@@ -221,7 +219,7 @@ const usersPage = {
         } catch(e) { errEl.textContent = e.message; errEl.style.display='block'; }
     },
 
-    /* ── Создать нового пользователя ───────────────────────── */
+
     openCreate() {
         buildModal('modal-us-create', 'Новый пользователь',
             '<div class="form-group"><label class="form-label">Логин</label>' +

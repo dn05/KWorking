@@ -112,7 +112,19 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ── Автоматическое применение миграций при старте ──────────
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await SeedData.Initialize(services);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Ошибка SeedData: {ex.Message}");
+    }
+}
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<KworkingDbContext>();
@@ -128,7 +140,7 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Ошибка при применении миграций. Приложение продолжит работу.");
     }
 }
-// ───────────────────────────────────────────────────────────
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -140,7 +152,7 @@ else
     app.UseHttpsRedirection();
 }
 
-// === КРИТИЧНО ВАЖНО ===
+
 app.UseStaticFiles();                  
 
 app.UseCors("AllowFrontend");

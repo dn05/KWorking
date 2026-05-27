@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   ДАШБОРД
-═══════════════════════════════════════════════════════════ */
+
 const dashboardPage = {
     _chart: null,
     currentPeriod: 'week',
@@ -102,7 +100,7 @@ const dashboardPage = {
             document.getElementById('ds-pending').textContent = pend.status==='fulfilled' ? (Array.isArray(pend.value)?pend.value.length:0) : 0;
             document.getElementById('ds-active').textContent  = act.status==='fulfilled'  ? (Array.isArray(act.value)?act.value.length:0)  : 0;
 
-            /* Выручка — для custom считаем по датам из полей, иначе через stats */
+           
             const revenueEl = document.getElementById('ds-revenue');
             const labelEl   = document.getElementById('ds-revenue-label');
 
@@ -142,27 +140,27 @@ const dashboardPage = {
         }
     },
 
-    /* ── Хелперы парсинга ответа API ── */
-
-    /* Извлекает массив платежей из любого формата ответа report */
+   
+    
+    
     _extractPayments(report) {
         if (!report) return [];
-        /* { payments: [...] } или { Payments: [...] } */
+        
         if (Array.isArray(report.payments))  return report.payments;
         if (Array.isArray(report.Payments))  return report.Payments;
-        /* сам массив */
+        
         if (Array.isArray(report))           return report;
-        /* { data: [...] } */
+        
         if (Array.isArray(report.data))      return report.data;
         return [];
     },
 
-    /* Извлекает цену из одного объекта платежа */
+    
     _extractPrice(p) {
         return parseFloat(p?.price ?? p?.Price ?? p?.amount ?? p?.Amount ?? 0) || 0;
     },
 
-    /* Извлекает дату из одного объекта платежа → строка YYYY-MM-DD */
+    
     _extractDateKey(p) {
         const raw = p?.paymentDate || p?.PaymentDate || p?.date || p?.Date || p?.createdAt || p?.CreatedAt;
         if (!raw) return null;
@@ -171,7 +169,7 @@ const dashboardPage = {
         } catch { return null; }
     },
 
-    /* Извлекает итоговую сумму из ответа stats */
+    
     _extractTotal(stats) {
         if (!stats) return 0;
         const t = stats.TotalAmount ?? stats.totalAmount ?? stats.total ?? stats.Total ?? null;
@@ -181,7 +179,8 @@ const dashboardPage = {
         return 0;
     },
 
-    /* ── Загрузка графика ── */
+    
+    
 
     async loadChart(period = null) {
         if (period) this.currentPeriod = period;
@@ -198,21 +197,21 @@ const dashboardPage = {
                 const report = await apiPayment.report(start, endInclusive);
                 const payments = dashboardPage._extractPayments(report);
 
-                /* Обновляем выручку в карточке */
+                
                 const total     = payments.reduce((sum, p) => sum + dashboardPage._extractPrice(p), 0);
                 const revenueEl = document.getElementById('ds-revenue');
                 const labelEl   = document.getElementById('ds-revenue-label');
                 if (revenueEl) revenueEl.textContent = fmtMoney(total);
                 if (labelEl)   labelEl.textContent   = 'Выручка за период';
 
-                /* Группируем по дате */
+               
                 const map = {};
                 payments.forEach(p => {
                     const key = dashboardPage._extractDateKey(p);
                     if (key) map[key] = (map[key] || 0) + dashboardPage._extractPrice(p);
                 });
 
-                /* Если нет дат — делаем один бар "Итого" */
+                
                 if (Object.keys(map).length === 0 && total > 0) {
                     labels     = ['Итого'];
                     dataPoints = [total];
@@ -222,14 +221,14 @@ const dashboardPage = {
                 }
 
             } else {
-                /* stats API: { labels: [...], data: [...] } */
+               
                 const res = await apiPayment.stats(this.currentPeriod);
 
                 if (Array.isArray(res?.labels) && res.labels.length) {
                     labels     = res.labels;
                     dataPoints = Array.isArray(res.data) ? res.data : [];
                 } else if (Array.isArray(res)) {
-                    /* Если stats вернул просто массив платежей */
+                    
                     const map = {};
                     res.forEach(p => {
                         const key = dashboardPage._extractDateKey(p);
@@ -238,7 +237,7 @@ const dashboardPage = {
                     labels     = Object.keys(map).sort();
                     dataPoints = labels.map(k => map[k]);
                 } else if (Array.isArray(res?.data) && !Array.isArray(res.labels)) {
-                    /* data без labels — генерируем метки */
+                    
                     dataPoints = res.data;
                     labels     = dataPoints.map((_, i) => String(i + 1));
                 }
@@ -252,7 +251,7 @@ const dashboardPage = {
 
         if (this._chart) { this._chart.destroy(); this._chart = null; }
 
-        /* Если данных нет — показываем пустой график с подсказкой */
+        
         const isEmpty = !labels.length || dataPoints.every(v => !v);
 
         this._chart = new Chart(canvas, {

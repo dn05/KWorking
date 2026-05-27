@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   ГЛАВНЫЙ РОУТЕР И ОРКЕСТРАТОР
-═══════════════════════════════════════════════════════════ */
+
 
 const NAV_ITEMS = {
     Client:        [],
@@ -46,7 +44,7 @@ const PAGE_RENDERERS = {
     payments:      () => paymentsPage.render(),
 };
 
-/* ─── Управление видимостью контейнеров ─────────────────── */
+
 function showContainer(id) {
     ['page-home','page-login','page-register','app-shell',
      'page-booking','page-workplaces-pub','page-services-pub'].forEach(cid => {
@@ -57,14 +55,14 @@ function showContainer(id) {
     if (target) target.classList.remove('hidden');
 }
 
-/* ─── Навбар  ───────────────────────────── */
+
 function _renderHomeLinks() {
     const el = document.getElementById('navbar-links');
     if (!el) return;
 
     const isLoggedIn = Auth.isLoggedIn();
     
-    // Показываем "Бронирование" ТОЛЬКО неавторизованным пользователям
+
     if (!isLoggedIn) {
         el.innerHTML = `
             <a class="navbar__link" data-tab="booking" onclick="homePage.show('booking')">Бронирование</a>
@@ -72,7 +70,7 @@ function _renderHomeLinks() {
             <a class="navbar__link" data-tab="services" onclick="homePage.show('services')">Услуги</a>
         `;
     } else {
-        // Для авторизованных пользователей показываем только "Рабочие места" и "Услуги"
+
         el.innerHTML = `
             <a class="navbar__link" data-tab="workplaces" onclick="homePage.show('workplaces')">Рабочие места</a>
             <a class="navbar__link" data-tab="services" onclick="homePage.show('services')">Услуги</a>
@@ -112,13 +110,13 @@ function renderNavAuth() {
     document.getElementById('btn-logout').addEventListener('click', App.logout);
 }
 
-/* ─── Сайдбар ────────────────────────────────────────────── */
+
 function renderSidebar(active) {
     const u     = Auth.get();
     const items = NAV_ITEMS[u?.role] || [];
     const shell = document.getElementById('app-shell');
 
-    /* Скрываем сайдбар для клиентов (у них пустой список) */
+
     if (shell) shell.classList.toggle('app-shell--no-sidebar', !items.length);
 
     document.getElementById('sidebar-nav').innerHTML = items.map(it =>
@@ -133,7 +131,7 @@ function renderSidebar(active) {
     }
 }
 
-/* ─── Рендер раздела ─────────────────────────────────────── */
+
 function renderSection(name) {
     const fn = PAGE_RENDERERS[name];
     if (fn) {
@@ -143,14 +141,14 @@ function renderSection(name) {
     }
 }
 
-/* ─── Главный объект приложения ──────────────────────────── */
+
 const App = {
     currentSection: null,
 
     navigate(page) {
         if (Auth.isLoggedIn()) {
             const role = Auth.get()?.role;
-            /* Клиентам разрешаем смотреть домашнюю страницу */
+
             if (page === 'home' && role === 'Client') {
                 showContainer('page-home');
                 homePage._setActiveLink(null);
@@ -188,7 +186,7 @@ const App = {
         App.showSection(role === 'Client' ? 'profile' : 'dashboard');
     },
 
-    /* Получаем clientId через user API если он не пришёл при логине */
+    
     async _resolveClientId() {
         const u = Auth.get();
         if (!u?.id || u?.clientId) return;
@@ -207,20 +205,20 @@ const App = {
 
     logout() {
         Auth.clear();
-        renderNavGuest();   /* перерисовывает ссылки, сбрасывая --active */
+        renderNavGuest(); 
         showContainer('page-home');
         homePage._loadHomepageServices();
         location.hash = '/home';
     },
 
     init() {
-        /* Делегирование навигации по [data-nav] */
+        
         document.addEventListener('click', e => {
             const el = e.target.closest('[data-nav]');
             if (el) { e.preventDefault(); App.navigate(el.dataset.nav); }
         });
 
-        /* Обработка изменения хэша */
+        
         window.addEventListener('hashchange', () => {
             const page = location.hash.slice(2) || 'home';
             if (Auth.isLoggedIn() && !['home','login','register'].includes(page)) {
@@ -228,12 +226,12 @@ const App = {
             }
         });
 
-        /* Инициализация форм */
+        
         initLoginForm();
         initRegisterForm();
         initForgotPassword();
 
-        /* Начальное состояние */
+       
         if (Auth.isLoggedIn()) {
             renderNavAuth();
             const hash = location.hash.slice(2);

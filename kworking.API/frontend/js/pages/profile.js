@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   ПРОФИЛЬ
-═══════════════════════════════════════════════════════════ */
+
 
 const profilePage = {
   _bookings: [],
@@ -18,7 +16,7 @@ const profilePage = {
     const initial = name.charAt(0).toUpperCase();
 
     document.getElementById('page-content').innerHTML =
-      /* ── Шапка ── */
+
       '<div class="profile-hd">' +
       '<div class="profile-avatar">' + esc(initial) + '</div>' +
       '<div class="profile-hd__info">' +
@@ -27,12 +25,12 @@ const profilePage = {
       '</div>' +
       '<button class="btn btn--ghost btn--sm" onclick="profilePage.openEdit()">Редактировать</button>' +
       '</div>' +
-      /* ── Личные данные ── */
+
       '<div class="info-card" id="pf-info-card">' +
       '<div class="info-card__title">Личные данные</div>' +
       '<div class="info-grid" id="pf-info-grid"><div class="ht-loading" style="padding:16px 0">Загрузка…</div></div>' +
       '</div>' +
-      /* ── Статистика ── */
+
       '<div class="stats-grid">' +
       '<div class="stat-card"><div class="stat-card__icon">⏳</div>' +
       '<div class="stat-card__value" id="pf-pending">…</div>' +
@@ -41,9 +39,9 @@ const profilePage = {
       '<div class="stat-card__value" id="pf-active">…</div>' +
       '<div class="stat-card__label">Активных бронирований</div></div>' +
       '</div>' +
-      /* ── Абонемент ── */
+ 
       '<div id="pf-sub-block" style="margin-bottom:28px"></div>' +
-      /* ── Бронирования ── */
+
       '<div class="page-hd" style="margin-bottom:16px">' +
       '<h3 style="font-size:1.1rem;font-weight:700;color:var(--dark)">Мои бронирования</h3>' +
       '</div>' +
@@ -68,7 +66,7 @@ const profilePage = {
     await profilePage._load();
   },
 
-  /* ── Личные данные ── */
+
 
   async _loadClientInfo() {
     const u  = Auth.get();
@@ -149,7 +147,7 @@ const profilePage = {
     } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
   },
 
-  /* ── Бронирования ── */
+
 
   async _load() {
     const tbody = document.getElementById('pf-tbody');
@@ -192,8 +190,7 @@ const profilePage = {
     tbody.innerHTML = list.map(b => {
       const payment = profilePage._payments.find(p => p.id_booking === b.id_booking);
 
-      /* Определяем — покрыто ли бронирование абонементом
-         Признак: lastPrice === 0 И нет допов (или сумма = только допы) */
+
       const isCoveredBySub = profilePage._subActive && b.lastPrice === 0;
 
       let acts = '';
@@ -202,7 +199,7 @@ const profilePage = {
       }
       if (b.status === 'Active') {
         if (isCoveredBySub) {
-          /* Место покрыто абонементом */
+
           if (!payment || payment.status === 'Cancelled') {
             acts += '<span class="badge badge--green">🎟 По абонементу</span>';
           } else if (payment.status === 'Pending') {
@@ -222,7 +219,7 @@ const profilePage = {
       }
       if (!acts) acts = '<span style="color:#aaa;font-size:.8rem">—</span>';
 
-      /* Сумма: если 0 и покрыто абонементом — показываем иначе */
+
       const sumHtml = isCoveredBySub && b.lastPrice === 0
         ? '<span style="color:#2d6a2d;font-size:.82rem;font-weight:600">🎟 0 ₽</span>'
         : fmtMoney(b.lastPrice || 0);
@@ -244,7 +241,7 @@ const profilePage = {
     catch(e) { toastErr(e.message); }
   },
 
-  /* ── Абонемент ── */
+
 
   async _loadSubscription() {
     const block = document.getElementById('pf-sub-block');
@@ -286,7 +283,7 @@ const profilePage = {
     } catch(e) { toastErr(e.message); }
   },
 
-  /* ── Профиль сотрудника ── */
+
 
   async _renderStaff() {
     const u         = Auth.get();

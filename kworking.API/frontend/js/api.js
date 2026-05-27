@@ -38,21 +38,21 @@ async function req(method, path, body, auth) {
     try { return JSON.parse(text); } catch { return text; }
 }
 
-/* Вспомогательные методы */
+
 const G  = (p,a)    => req('GET',    p, null, a);
 const P  = (p,b,a)  => req('POST',   p, b,    a);
 const PT = (p,b,a)  => req('PUT',    p, b,    a);
 const PA = (p,b,a)  => req('PATCH',  p, b,    a);
 const D  = (p,a)    => req('DELETE', p, null, a);
 
-/* ─── AUTH ──────────────────────────────────────────────── */
+
 const apiAuth = {
     login:         d => P('/auth/login',          d, false),
     register:      d => P('/auth/register',       d, false),
     resetPassword: d => P('/auth/reset-password', d, false),
 };
 
-/* ─── РАБОЧИЕ МЕСТА ──────────────────────────────────────── */
+
 const apiWorkplace = {
     getAll:  ()    => G('/workplace',                 true),
     getFree: ()    => G('/workplace/free',            true),
@@ -63,7 +63,7 @@ const apiWorkplace = {
     status:  (id,s)=> PA('/workplace/'+id+'/status?status='+s, null, true),
 };
 
-/* ─── БРОНИРОВАНИЯ ────────────────────────────────────────── */
+
 const apiBooking = {
     getAll:   (p,ps) => G('/booking?page='+(p||1)+'&pageSize='+(ps||20), true),
     getById:  id     => G('/booking/'+id,         true),
@@ -79,7 +79,7 @@ const apiBooking = {
     availability: wpId  => G('/booking/availability?workplaceId='+wpId, true),
 };
 
-/* ─── ТАРИФЫ ─────────────────────────────────────────────── */
+
 const apiTariff = {
     getAll:  ()    => G('/tariff',        false),
     getById: id    => G('/tariff/'+id,    false),
@@ -88,7 +88,7 @@ const apiTariff = {
     delete:  id    => D('/tariff/'+id,    true),
 };
 
-/* ─── КЛИЕНТЫ ────────────────────────────────────────────── */
+
 const apiClient = {
     getAll:  (p,ps) => G('/client?page='+(p||1)+'&pageSize='+(ps||50), true),
     getById: id     => G('/client/'+id,           true),
@@ -98,7 +98,7 @@ const apiClient = {
     search:  q      => G('/client/search?'+new URLSearchParams(q), true),
 };
 
-/* ─── ПОЛЬЗОВАТЕЛИ ───────────────────────────────────────── */
+
 const apiUser = {
     getAll:  ()    => G('/user',             true),
     getById: id    => G('/user/'+id,         true),
@@ -108,7 +108,7 @@ const apiUser = {
     setRole: (id,r)=> PA('/user/'+id+'/role?role='+r, null, true),
 };
 
-/* ─── УСЛУГИ ─────────────────────────────────────────────── */
+
 const apiService = {
     getAll:  ()     => G('/service',        true),
     create:  d      => P('/service', d,     true),
@@ -116,7 +116,7 @@ const apiService = {
     delete:  id     => D('/service/'+id,    true),
 };
 
-/* ─── АБОНЕМЕНТЫ ─────────────────────────────────────────── */
+
 const apiSubscription = {
     getAll:   ()  => G('/subscription',              true),
     getMine:  ()  => G('/subscription/my',           true),
@@ -125,7 +125,7 @@ const apiSubscription = {
     cancel:   id  => PA('/subscription/'+id+'/cancel',   null, true),
 };
 
-/* ─── ПЛАТЕЖИ ─────────────────────────────────────────────── */
+
 const apiPayment = {
     getAll:    (p,ps) => G('/payment?page='+(p||1)+'&pageSize='+(ps||20), true),
     getById:   id     => G('/payment/'+id,               true),

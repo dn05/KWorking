@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   БРОНИРОВАНИЯ
-═══════════════════════════════════════════════════════════ */
+
 
 const bookingsPage = {
   _data:     [],
@@ -90,7 +88,7 @@ const bookingsPage = {
 
       const acts = bookingsPage._actions(b, isAdmin, isStaff, isClient);
 
-      /* Сумма: если 0 — возможно покрыто абонементом, помечаем */
+
       const sumHtml = (b.lastPrice === 0 && b.status !== 'Cancelled')
         ? '<span style="color:#2d6a2d;font-size:.82rem;font-weight:600">🎟 0 ₽</span>'
         : fmtMoney(b.lastPrice || 0);
@@ -110,7 +108,7 @@ const bookingsPage = {
     let html = '';
     const payment = bookingsPage._payments.find(p => p.id_booking === b.id_booking);
 
-    /* ── Подтвердить / отменить (admin) ── */
+
     if (b.status === 'PendingConfirmation' && isAdmin)
       html += '<button class="btn btn--success btn--sm" onclick="bookingsPage.confirm(' + b.id_booking + ')">Подтвердить</button>';
 
@@ -123,10 +121,10 @@ const bookingsPage = {
     if (b.status === 'Active' && isStaff)
       html += '<button class="btn btn--ghost btn--sm" onclick="bookingsPage.complete(' + b.id_booking + ')">Завершить</button>';
 
-    /* ── Оплата для клиента ── */
+
     if (b.status === 'Active' && isClient) {
       if (b.lastPrice === 0) {
-        /* Место покрыто абонементом — доп. услуг нет */
+
         html += '<span class="badge badge--green">🎟 По абонементу</span>';
       } else if (!payment || payment.status === 'Cancelled') {
         html += '<span style="color:var(--muted);font-size:.8rem">Не оплачено</span>';
@@ -137,8 +135,7 @@ const bookingsPage = {
       }
     }
 
-    /* ── Оплата для персонала ──
-       Если lastPrice === 0 — место покрыто абонементом, допов нет → не нужна оплата */
+
     if (b.status === 'Active' && (isAdmin || isStaff) && !isClient) {
       if (b.lastPrice === 0) {
         html += '<span class="badge badge--green">🎟 Абонемент</span>';
@@ -190,7 +187,7 @@ const bookingsPage = {
     catch (e) { toastErr(e.message); }
   },
 
-  /* ── Форма создания (admin) ─────────────────────────────── */
+
 
   async openCreate() {
     let wps = [], clients = [], svcs = [];

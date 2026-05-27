@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   РАБОЧИЕ МЕСТА
-═══════════════════════════════════════════════════════════ */
+
 
 const WP_TYPES = {
   OpenSpace:   { label: 'Открытое пространство', icon: '🏢' },
@@ -14,7 +12,7 @@ const workplacesPage = {
   _slotState: { start: null, end: null },
   _selSvcs:  {},
 
-  /* ── новый UI бронирования ── */
+
   _bkDate:      null,
   _bkView:      'strip',
   _bkCalYear:   null,
@@ -27,7 +25,7 @@ const workplacesPage = {
   _bkArrival:   null,
   _bkDeparture: null,
 
-  /* ── кэш абонемента ── */
+
   _subActive: false,
 
   async render() {
@@ -185,7 +183,7 @@ const workplacesPage = {
     </div>`;
   },
 
-  /* ── Форма создания/редактирования (admin) ─────────────── */
+
 
       openForm(id) {
     const w = id ? workplacesPage._data.find(x => x.id_workplace === id) : null;
@@ -280,9 +278,7 @@ const workplacesPage = {
     catch (e) { toastErr(e.message); }
   },
 
-  /* ══════════════════════════════════════════════════════════
-     ФОРМА БРОНИРОВАНИЯ — новый UI
-  ══════════════════════════════════════════════════════════ */
+
 
   openBooking(wpId) {
     const w = workplacesPage._data.find(x => x.id_workplace === wpId);
@@ -329,7 +325,7 @@ const workplacesPage = {
     const hasSub   = workplacesPage._subActive;
     const svcsHtml = workplacesPage._buildServicesHtml();
 
-    /* Баннер абонемента — показываем только если абонемент активен */
+ 
     const subBanner = hasSub
       ? '<div style="' +
           'display:flex;align-items:center;gap:10px;' +
@@ -397,14 +393,14 @@ const workplacesPage = {
     );
   },
 
-  /* Возвращает YYYY-MM-DD по локальному времени */
+
   _ymd(d) {
     return d.getFullYear() + '-' +
       String(d.getMonth() + 1).padStart(2, '0') + '-' +
       String(d.getDate()).padStart(2, '0');
   },
 
-  /* ── Выбор даты ─────────────────────────────────────────── */
+
 
   _renderDateStrip(selected) {
     const view = document.getElementById('bk-date-view');
@@ -515,7 +511,7 @@ const workplacesPage = {
     workplacesPage._loadSlots(workplacesPage._bkWpId, ds);
   },
 
-  /* ── Слоты времени ──────────────────────────────────────── */
+
 
   _renderArrivalSlots(date) {
     const el = document.getElementById('bk-arrive-slots');
@@ -612,7 +608,7 @@ const workplacesPage = {
     workplacesPage._updateTotal(workplacesPage._bkWp);
   },
 
-  /* ── Карточки услуг ─────────────────────────────────────── */
+
 
   _buildServicesHtml() {
     const svcs = workplacesPage._services;
@@ -663,7 +659,7 @@ const workplacesPage = {
     const hours  = hi - lo + 1;
     const rate   = w?.pricePerHour || 0;
 
-    /* Если абонемент — место бесплатно */
+
     let total = hasSub ? 0 : hours * rate;
     const lines = [];
 
@@ -699,7 +695,7 @@ const workplacesPage = {
       '</div>';
   },
 
-  /* ── Загрузка слотов (новый + легаси admin-форма) ───────── */
+
 
   async _loadSlots(wpId, date) {
     const HOURS = [10,11,12,13,14,15,16,17,18,19,20];
@@ -724,7 +720,7 @@ const workplacesPage = {
       });
     } catch {}
 
-    /* Новый UI (клиентская форма) */
+    
     if (document.getElementById('bk-arrive-slots')) {
       if (date !== workplacesPage._bkDate) return;
       workplacesPage._bkTakenHours = hourCounts;
@@ -735,7 +731,7 @@ const workplacesPage = {
       return;
     }
 
-    /* Легаси UI (admin-форма) */
+
     const grid = document.getElementById('bk-slots');
     if (!grid) return;
     const now         = new Date();
@@ -764,7 +760,7 @@ const workplacesPage = {
     }).join('');
   },
 
-  /* Легаси — для admin-формы */
+
   _selectSlot(hour, btn) {
     const state = workplacesPage._slotState;
     if (state.start !== null && state.end === null) {

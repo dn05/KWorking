@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
-   АУТЕНТИФИКАЦИЯ
-═══════════════════════════════════════════════════════════ */
+
 const Auth = {
     save(data) {
         localStorage.setItem('kw_token', data.token);
@@ -35,7 +33,7 @@ const Auth = {
     },
 };
 
-/* ── Обработчик формы входа ──────────────────────────────── */
+
 function initLoginForm() {
     const form = document.getElementById('login-form');
     if (!form) return;
@@ -65,7 +63,7 @@ function initLoginForm() {
     });
 }
 
-/* ── Сброс пароля ────────────────────────────────────────── */
+
 function initForgotPassword() {
     document.getElementById('btn-forgot-pass')?.addEventListener('click', e => {
         e.preventDefault();
@@ -104,7 +102,7 @@ function initForgotPassword() {
     });
 }
 
-/* ── Обработчик формы регистрации ───────────────────────── */
+
 function initRegisterForm() {
     const form = document.getElementById('register-form');
     if (!form) return;
@@ -130,7 +128,7 @@ function initRegisterForm() {
                 email:    regEmail,
                 phone:    regPhone,
             });
-            /* Гарантируем наличие email/phone/clientName даже если API не вернул их */
+            
             if (!data.email)      data.email      = regEmail;
             if (!data.phone)      data.phone      = regPhone;
             if (!data.clientName) data.clientName = (regName + ' ' + regSurn).trim();

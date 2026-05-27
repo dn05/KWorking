@@ -12,7 +12,7 @@ SET row_security = off;
 SET default_tablespace = '';
 SET default_table_access_method = heap;
 
--- ── ТАБЛИЦЫ ──────────────────────────────────────────────────
+
 
 CREATE TABLE public."Bookings" (
                                    "Id_booking" integer NOT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE public."__EFMigrationsHistory" (
 );
 ALTER TABLE public."__EFMigrationsHistory" OWNER TO postgres;
 
--- ── ДАННЫЕ ───────────────────────────────────────────────────
+
 
 COPY public."Clients" ("Id", "Name", "Surname", "Phone", "Email") FROM stdin;
 1	Григорий	Кокиев	89763674878	A@gmail.com
@@ -229,7 +229,7 @@ COPY public."__EFMigrationsHistory" ("MigrationId", "ProductVersion") FROM stdin
 20260526144049_s	8.0.4
 \.
 
--- ── ПОСЛЕДОВАТЕЛЬНОСТИ ────────────────────────────────────────
+
 
 SELECT pg_catalog.setval('public."Bookings_Id_booking_seq"', 35, true);
 SELECT pg_catalog.setval('public."Clients_Id_seq"', 13, true);
@@ -238,7 +238,7 @@ SELECT pg_catalog.setval('public."Tariffs_Id_tariff_seq"', 6, true);
 SELECT pg_catalog.setval('public."Users_Id_user_seq"', 13, true);
 SELECT pg_catalog.setval('public."WorkPlaces_Id_workplace_seq"', 10, true);
 
--- ── ПЕРВИЧНЫЕ КЛЮЧИ ───────────────────────────────────────────
+
 
 ALTER TABLE ONLY public."Bookings"          ADD CONSTRAINT "PK_Bookings"             PRIMARY KEY ("Id_booking");
 ALTER TABLE ONLY public."Clients"           ADD CONSTRAINT "PK_Clients"              PRIMARY KEY ("Id");
@@ -248,7 +248,7 @@ ALTER TABLE ONLY public."Users"             ADD CONSTRAINT "PK_Users"           
 ALTER TABLE ONLY public."WorkPlaces"        ADD CONSTRAINT "PK_WorkPlaces"           PRIMARY KEY ("Id_workplace");
 ALTER TABLE ONLY public."__EFMigrationsHistory" ADD CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId");
 
--- ── ИНДЕКСЫ ───────────────────────────────────────────────────
+
 
 CREATE INDEX "IX_Bookings_Id_client"    ON public."Bookings"  USING btree ("Id_client");
 CREATE INDEX "IX_Bookings_Id_tariff"    ON public."Bookings"  USING btree ("Id_tariff");
@@ -262,7 +262,7 @@ CREATE INDEX "IX_Users_Id_client"       ON public."Users"     USING btree ("Id_c
 CREATE UNIQUE INDEX "IX_Users_Login"    ON public."Users"     USING btree ("Login");
 CREATE UNIQUE INDEX "IX_WorkPlaces_Name" ON public."WorkPlaces" USING btree ("Name");
 
--- ── ВНЕШНИЕ КЛЮЧИ ─────────────────────────────────────────────
+
 
 ALTER TABLE ONLY public."Bookings" ADD CONSTRAINT "FK_Bookings_Clients_Id_client"     FOREIGN KEY ("Id_client")    REFERENCES public."Clients"("Id")    ON DELETE RESTRICT;
 ALTER TABLE ONLY public."Bookings" ADD CONSTRAINT "FK_Bookings_Tariffs_Id_tariff"     FOREIGN KEY ("Id_tariff")    REFERENCES public."Tariffs"("Id_tariff") ON DELETE RESTRICT;
