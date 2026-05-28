@@ -114,21 +114,21 @@ function initRegisterForm() {
     if (phoneInput) {
         console.log('✅ Phone input found, initializing IMask');
 
-        // Инициализация маски
+
         phoneMask = IMask(phoneInput, {
             mask: '+{7} (000) 000 00 00',
-            lazy: false,           // показывать маску сразу
+            lazy: false,           
             placeholderChar: '_'
         });
 
-        // Начальное значение
+
         if (!phoneInput.value) {
             phoneInput.value = '+7';
             phoneMask.updateValue();
         }
     }
 
-    // ====================== ОТПРАВКА ФОРМЫ ======================
+
     form.addEventListener('submit', async e => {
         e.preventDefault();
 
@@ -139,7 +139,7 @@ function initRegisterForm() {
         btn.disabled = true;
         btn.textContent = 'Регистрирую…';
 
-        // Валидация
+
         if (phoneMask) {
             const digits = phoneMask.unmaskedValue;
             if (digits.length < 11) {

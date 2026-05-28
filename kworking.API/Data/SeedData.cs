@@ -16,11 +16,11 @@ public static class SeedData
         if (!await context.WorkPlaces.AnyAsync())
         {
             context.WorkPlaces.AddRange(
-                new WorkPlace { Id_workplace = 4, Name = "Комната A", Description = "отдельная комната", Status = WorkPlaceStatus.free, Capacity = 1, Type = "Room", PricePerHour = 600.00m, PhotoUrl = "/uploads/workplaces/f8acae7e-2abe-439d-8b5d-ffd40190bb4e.webp" },
+                new WorkPlace { Id_workplace = 4, Name = "Комната A", Description = "отдельная комната", Status = WorkPlaceStatus.free, Capacity = 1, Type = "Room", PricePerHour = 600.00m, PhotoUrl = "/uploads/workplaces/b7d8a232-83e5-4cff-af73-263c75c92cde.webp" },
                 new WorkPlace { Id_workplace = 5, Name = "Комната В", Description = "отдельная комната", Status = WorkPlaceStatus.free, Capacity = 1, Type = "Room", PricePerHour = 600.00m, PhotoUrl = "/uploads/workplaces/adbe141d-373b-45ef-a156-a548b800bf9e.jpeg" },
-                new WorkPlace { Id_workplace = 6, Name = "Комната C", Description = "отдельная комната", Status = WorkPlaceStatus.free, Capacity = 1, Type = "Room", PricePerHour = 600.00m, PhotoUrl = "/uploads/workplaces/822a4275-aa15-47fc-be54-8f44bbe91ef3.png"},
-                new WorkPlace { Id_workplace = 8, Name = "Открытое пространство", Description = "одно рабочее место", Status = WorkPlaceStatus.free, Capacity = 30, Type = "OpenSpace", PricePerHour = 400.00m, PhotoUrl = "/uploads/workplaces/bbc4c4c4-c328-4a12-b674-5e3bc1dfd0af.webp" },
-                new WorkPlace { Id_workplace = 9, Name = "Переговорная", Description = "комната с круглым столом", Status = WorkPlaceStatus.free, Capacity = 10, Type = "MeetingRoom", PricePerHour = 700.00m, PhotoUrl = "/uploads/workplaces/3e42c46c-4b97-4460-a037-6656c2f7fb13.jpeg" },
+                new WorkPlace { Id_workplace = 6, Name = "Комната C", Description = "отдельная комната", Status = WorkPlaceStatus.free, Capacity = 1, Type = "Room", PricePerHour = 600.00m, PhotoUrl = "/uploads/workplaces/4ea78707-9039-435f-ba09-b020ffce36bd.png"},
+                new WorkPlace { Id_workplace = 8, Name = "Открытое пространство", Description = "одно рабочее место", Status = WorkPlaceStatus.free, Capacity = 30, Type = "OpenSpace", PricePerHour = 400.00m, PhotoUrl = "/uploads/workplaces/d47f65c5-3e64-4517-b7c5-391ed2371b54.jpeg" },
+                new WorkPlace { Id_workplace = 9, Name = "Переговорная", Description = "комната с круглым столом", Status = WorkPlaceStatus.free, Capacity = 10, Type = "MeetingRoom", PricePerHour = 700.00m, PhotoUrl = "/uploads/workplaces/674637b4-296b-4dc2-a86b-e9a5b2ead147.webp" },
                 new WorkPlace { Id_workplace = 10, Name = "223", Description = "111", Status = WorkPlaceStatus.free, Capacity = 10, Type = "Room", PricePerHour = 10.00m, PhotoUrl = "/uploads/workplaces/6cfddaa6-77c1-45e3-a78c-a8836254b583.jpg" }
             );
             await context.SaveChangesAsync();
