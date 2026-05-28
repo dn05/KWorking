@@ -190,10 +190,12 @@ const App = {
     async _resolveClientId() {
         const u = Auth.get();
         if (!u?.id || u?.clientId) return;
+        const tokenSnapshot = Auth.token();
         try {
             const ud = await fetch(API_BASE + '/user/' + u.id, {
                 headers: { 'Authorization': 'Bearer ' + Auth.token() }
             }).then(r => r.ok ? r.json() : null);
+            if (Auth.token() !== tokenSnapshot) return;
             const clientId = ud?.id_client || ud?.clientId || ud?.client?.id || ud?.client?.id_client || null;
             if (clientId) {
                 const stored = Auth.get();

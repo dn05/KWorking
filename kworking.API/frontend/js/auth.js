@@ -1,6 +1,7 @@
 
 const Auth = {
     save(data) {
+        this.clear();
         localStorage.setItem('kw_token', data.token);
         localStorage.setItem('kw_user', JSON.stringify({
             id:         data.id_user,
