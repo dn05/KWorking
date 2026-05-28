@@ -161,11 +161,11 @@ COPY public."Tariffs" ("Id_tariff", "Name", "Price", "Info", "DurationHours", "V
 \.
 
 COPY public."WorkPlaces" ("Id_workplace", "Name", "Description", "Status", "Capacity", "Type", "PricePerHour", "PhotoUrl") FROM stdin;
-4	Комната A	отдельная комната	free	1	Room	600.00	/uploads/workplaces/a528f82b-68ef-4a54-b880-7464833851f4.jpg
-9	Переговорная	комната с круглым столом с вместимостью до 10 человек	free	1	MeetingRoom	700.00	/uploads/workplaces/521a9400-61b8-48bf-b18d-b72a618b7ee6.jpg
-5	Комната В	отдельная комната	free	1	Room	600.00	/uploads/workplaces/28575c7a-6bdd-43fc-947b-42e7c93d6ea0.jpeg
-8	Открытое пространство	одно рабочее место	free	30	OpenSpace	400.00	/uploads/workplaces/7600cc2b-9524-43aa-848e-85febc3f13e1.jpg
-6	Комната C	отдельная комната	free	1	Room	600.00	\N
+4	Комната A	отдельная комната	free	1	Room	600.00	/uploads/workplaces/b7d8a232-83e5-4cff-af73-263c75c92cde.webp
+9	Переговорная	комната с круглым столом с вместимостью до 10 человек	free	1	MeetingRoom	700.00 /uploads/workplaces/674637b4-296b-4dc2-a86b-e9a5b2ead147.webp
+5	Комната В	отдельная комната	free	1	Room	600.00	/uploads/workplaces/adbe141d-373b-45ef-a156-a548b800bf9e.jpeg
+8	Открытое пространство	одно рабочее место	free	30	OpenSpace	400.00	/uploads/workplaces/d47f65c5-3e64-4517-b7c5-391ed2371b54.jpeg
+6	Комната C	отдельная комната	free	1	Room	600.00	/uploads/workplaces/4ea78707-9039-435f-ba09-b020ffce36bd.png
 10	223	111	free	10	Room	10.00	/uploads/workplaces/6cfddaa6-77c1-45e3-a78c-a8836254b583.jpg
 \.
 
