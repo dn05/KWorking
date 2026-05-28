@@ -38,6 +38,8 @@ services:
       Jwt__Audience: "kworking-client"
     ports:
       - "5175:5175"
+    volumes:
+      - ./wwwroot/uploads:/app/wwwroot/uploads
 
   frontend:
     image: nginx:alpine
