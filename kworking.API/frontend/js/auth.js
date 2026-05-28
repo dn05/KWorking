@@ -107,35 +107,65 @@ function initRegisterForm() {
     const form = document.getElementById('register-form');
     if (!form) return;
 
+    const phoneInput = document.getElementById('inp-reg-phone');
+
+    let phoneMask = null;
+
+    if (phoneInput) {
+        console.log('✅ Phone input found, initializing IMask');
+
+        // Инициализация маски
+        phoneMask = IMask(phoneInput, {
+            mask: '+{7} (000) 000 00 00',
+            lazy: false,           // показывать маску сразу
+            placeholderChar: '_'
+        });
+
+        // Начальное значение
+        if (!phoneInput.value) {
+            phoneInput.value = '+7';
+            phoneMask.updateValue();
+        }
+    }
+
+    // ====================== ОТПРАВКА ФОРМЫ ======================
     form.addEventListener('submit', async e => {
         e.preventDefault();
+
         const btn   = form.querySelector('button[type=submit]');
         const errEl = document.getElementById('register-error');
+
         errEl.style.display = 'none';
         btn.disabled = true;
         btn.textContent = 'Регистрирую…';
 
+        // Валидация
+        if (phoneMask) {
+            const digits = phoneMask.unmaskedValue;
+            if (digits.length < 11) {
+                errEl.textContent = 'Введите полный номер телефона';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Зарегистрироваться';
+                phoneInput.focus();
+                return;
+            }
+        }
+
         try {
-            const regEmail = document.getElementById('inp-reg-email').value.trim();
-            const regPhone = document.getElementById('inp-reg-phone').value.trim();
-            const regName  = document.getElementById('inp-reg-name').value.trim();
-            const regSurn  = document.getElementById('inp-reg-surname').value.trim();
             const data = await apiAuth.register({
                 login:    document.getElementById('inp-reg-login').value.trim(),
                 password: document.getElementById('inp-reg-pass').value,
-                name:     regName,
-                surname:  regSurn,
-                email:    regEmail,
-                phone:    regPhone,
+                name:     document.getElementById('inp-reg-name').value.trim(),
+                surname:  document.getElementById('inp-reg-surname').value.trim(),
+                email:    document.getElementById('inp-reg-email').value.trim(),
+                phone:    phoneMask ? phoneMask.value : phoneInput.value,
             });
-            
-            if (!data.email)      data.email      = regEmail;
-            if (!data.phone)      data.phone      = regPhone;
-            if (!data.clientName) data.clientName = (regName + ' ' + regSurn).trim();
+
             Auth.save(data);
             App.afterLogin();
         } catch (err) {
-            errEl.textContent = err.message;
+            errEl.textContent = err.message || 'Ошибка регистрации';
             errEl.style.display = 'block';
         } finally {
             btn.disabled = false;

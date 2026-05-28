@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KWorking — Коворкинг-пространство</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/imask@7.6.0/dist/imask.min.js"></script>
 </head>
 <body>
     <div id="toast" class="toast"></div>
@@ -120,10 +121,14 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Телефон</label>
-                    <input class="form-input" type="tel" id="inp-reg-phone" placeholder="+7XXXXXXXXXX" value="+7" required>
-                    <small style="color:var(--muted);font-size:.78rem">Формат: +7 и 10 цифр</small>
-                    <div class="phone-err" style="display:none;color:#8a2222;font-size:.8rem;margin-top:2px">Можно вводить только цифры</div>
+                    <input class="form-input"
+                           type="tel"
+                           id="inp-reg-phone"
+                           placeholder="+7 (999) 888 77 66"
+                           required>
+                    <small style="color:var(--muted);font-size:.78rem">Формат: +7 (999) 888 77 66</small>
                 </div>
+                <div class="phone-err" style="display:none;color:#8a2222;font-size:.8rem;margin-top:2px">Можно вводить только цифры</div>
                 <div id="register-error" class="form-error" style="display:none"></div>
                 <button class="btn btn--accent btn--block" type="submit">Зарегистрироваться</button>
             </form>
